@@ -10,11 +10,12 @@
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 
-<body class="bg-pattern">
+<body class="bg-pattern bg-cover bg-center">
 
     <nav class="bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-            <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
+            <a href="/main" hx-get="/main" hx-target="#main-container" hx-push-url="#" hx-trigger="click"
+                class="flex items-center space-x-3 rtl:space-x-reverse">
                 <img src="../assets/image/logo.png" class="h-20" alt="SMYO Logo" />
                 <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"></span>
             </a>
@@ -31,15 +32,26 @@
             <div class="hidden w-full md:block md:w-auto" id="navbar-dropdown">
                 <ul
                     class="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+
                     <li>
-                        <a href="#"
+                        <!-- Anasayfa link -->
+                        <a href="#" hx-get="/main" hx-target="#main-container" hx-push-url="#" hx-trigger="click"
                             class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500 dark:bg-blue-600 md:dark:bg-transparent"
                             aria-current="page">Anasayfa</a>
                     </li>
                     <li>
-                        <a href="#"
+                        <!-- Hakkımızda link -->
+                        <a href="#programlar" hx-get="/programlar" hx-target="#main-container" hx-push-url="#programlar"
+                            hx-trigger="click"
                             class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Programlar</a>
                     </li>
+                    <li>
+                        <!-- İletişim link -->
+                        <a href="#contact" hx-get="/contact" hx-target="#main-container" hx-push-url="#contact"
+                            hx-trigger="click"
+                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">İletişim</a>
+                    </li>
+
                     <li>
                         <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar"
                             class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">Personel
@@ -66,101 +78,52 @@
                             </ul>
                         </div>
                     </li>
-                    <li>
-                        <a href="#"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">İletişim</a>
-                    </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto w-[1920x] h-[768px] mt-8 mb-8">
-        <div class="swiper mySwiper ">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <div class="flex items-center justify-center h-full w-full">
-                        <img class="w-full h-full object-cover rounded-xl"
-                            src="http://193.140.145.101/images/slider/flash/1.jpg" />
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div class="flex items-center justify-center h-full w-full">
-                        <img class="w-full h-full object-cover rounded-xl"
-                            src="http://193.140.145.101/images/slider/flash/2.jpg" />
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div class="flex items-center justify-center h-full w-full">
-                        <img class="w-full h-full object-cover rounded-xl"
-                            src="http://193.140.145.101/images/slider/flash/3.jpg" />
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div class="flex items-center justify-center h-full w-full">
-                        <img class="w-full h-full object-cover rounded-xl"
-                            src="http://193.140.145.101/images/slider/flash/4.jpg" />
-                    </div>
-                </div>
-            </div>
-            <div
-                class="swiper-button-next bg-gray-500 text-white p-2 rounded absolute top-1/2 right-0 transform -translate-y-1/2">
-            </div>
-            <div
-                class="swiper-button-prev bg-gray-500 text-white p-2 rounded absolute top-1/2 left-0 transform -translate-y-1/2">
-            </div>
-        </div>
+    <div id="main-container">
+        <!-- Content goes here -->
     </div>
 
     <footer class="bg-white rounded-lg shadow m-4 dark:bg-gray-800">
         <div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
-            <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2023 <a href="https://flowbite.com/"
-                    class="hover:underline">STBMYO | Cumhuriyet Üniversitesi Sivas TBMYO Bilgisayar Teknolojileri Bölümü</a>.
+            <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2023 <span
+                    class="hover:underline">STBMYO | Cumhuriyet Üniversitesi Sivas TBMYO Bilgisayar Teknolojileri
+                    Bölümü</span>.
             </span>
             <ul class="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
                 <li>
-                    <a href="#" class="hover:underline me-4 md:me-6">Cumhuriyet Üniversitesi 58140 SİVAS</a>
+                    <span class="hover:underline me-4 md:me-6">Cumhuriyet Üniversitesi 58140 SİVAS</span>
                 </li>
                 <li>
-                    <a href="#" class="hover:underline me-4 md:me-6">Santral : +90 346 219 1010</a>
+                    <span class="hover:underline me-4 md:me-6">Santral : +90 346 219 1010</span>
                 </li>
                 <li>
-                    <a href="#" class="hover:underline me-4 md:me-6">Faks : +90 346 219 1110</a>
-                </li>
-                <li>
-                    <a href="#" class="hover:underline">İletişim</a>
+                    <span class="hover:underline me-4 md:me-6">Faks : +90 346 219 1110</span>
                 </li>
             </ul>
         </div>
     </footer>
 
-
+    <script src="https://unpkg.com/htmx.org@1.9.9"
+        integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11.0.5/swiper-bundle.min.js"></script>
     <script src="../../node_modules/flowbite/dist/flowbite.min.js"></script>
 
     <script>
-        var swiper = new Swiper(".mySwiper", {
-            spaceBetween: 30,
-            speed: 1500,
-            navigation: {
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev",
-            },
-            pagination: {
-                el: ".swiper-pagination",
-                clickable: true,
-            },
-            autoplay: {
-                delay: 2000,
-            },
-            effect: 'cube',
-            cubeEffect: {
-                shadow: true,
-                slideShadows: true,
-                shadowOffset: 20,
-                shadowScale: 0.94,
-            },
-        });
+        window.onload = function () {
+            var hash = window.location.hash.substr(1);
+            hash == "" ? hash = "main" : hash = hash;
+            if (hash) {
+                var link = document.querySelector(`a[hx-get="/${hash}"]`);
+                if (link) {
+                    link.click();
+                }
+            }
+        }
     </script>
 
 </body>

@@ -1,20 +1,21 @@
-use actix_files::Files;
-use actix_files::NamedFile;
-use actix_web::{web, App, HttpRequest, HttpServer, Result};
-use std::path::PathBuf;
+mod src;
 
-async fn index(_req: HttpRequest) -> Result<NamedFile> {
-    let path: PathBuf = "../public/pages/index.html".parse().unwrap();
-    Ok(NamedFile::open(path)?)
-}
+use actix_files::Files;
+use actix_web::{web, App, HttpServer};
+use std::io::Result;
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<()> {
     HttpServer::new(|| {
         App::new()
-            .route("/", web::get().to(index))
+            .route("/", web::get().to(src::index::handler))
+            .route("/main", web::get().to(src::main_content::handler))
+            .route("/contact", web::get().to(src::contact::get_handler))
+            // .route("/contact", web::post().to(src::contact::post_handler))
+            .route("/programlar", web::get().to(src::programlar::handler))
             .service(Files::new("/node_modules", "../node_modules"))
-            .service(Files::new("/", "../public"))
+            .service(Files::new("/pages", "../public/pages").index_file("index.html")) // Specify index file
+            .service(Files::new("/", "../public").index_file("index.html")) // Specify index file
     })
     .bind("127.0.0.1:8080")?
     .run()

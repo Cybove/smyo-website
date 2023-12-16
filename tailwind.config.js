@@ -8,9 +8,21 @@ module.exports = {
   theme: {
     extend: {
       backgroundImage: {
-        'pattern': "url('../assets/image/topography.svg')",
-      }
+        'pattern': "url('../assets/image/test3.svg')",
+      },
+      backgroundSize: {
+        'cover': 'cover',
+      },
+      backgroundPosition: {
+        'center': 'center',
+      },
     }
+  },
+  variants: {
+    extend: {
+      borderColor: ['hover', 'focus'],
+      borderWidth: ['hover', 'focus'],
+    },
   },
   plugins: [
     require('flowbite/plugin')
