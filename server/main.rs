@@ -1,5 +1,6 @@
 mod src;
 
+use crate::src::db;
 use actix_files::Files;
 use actix_web::{web, App, HttpServer};
 use std::io::Result;
@@ -10,8 +11,15 @@ async fn main() -> Result<()> {
         App::new()
             .route("/", web::get().to(src::index::handler))
             .route("/main", web::get().to(src::main_content::handler))
+            .route(
+                "/announcements",
+                web::get().to(src::main_content::announcements_handler),
+            )
+            .route(
+                "/announcement/{id}",
+                web::get().to(src::main_content::announcement_detail_handler),
+            )
             .route("/contact", web::get().to(src::contact::get_handler))
-            // .route("/contact", web::post().to(src::contact::post_handler))
             .route("/programlar", web::get().to(src::programlar::handler))
             .service(Files::new("/node_modules", "../node_modules"))
             .service(Files::new("/pages", "../public/pages").index_file("index.html")) // Specify index file
