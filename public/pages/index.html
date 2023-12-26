@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMYO</title>
+    <title>CÜ Sivas TBMYO Bilgisayar Teknolojileri Bölümü</title>
+    <link rel="icon" href="../assets/image/favicon.ico">
     <link rel="stylesheet" href="../../node_modules/flowbite/dist/flowbite.min.css">
     <link href="https://cdn.jsdelivr.net/npm/swiper@11.0.5/swiper-bundle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
@@ -12,8 +13,8 @@
 
 <body class="bg-pattern bg-cover bg-center">
 
-    <nav class="bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+    <nav class="bg-white border-gray-500 shadow-2xl shadow-gray-500 border-spacing-6 rounded-lg m-4 p-2">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-0">
             <a href="/main" hx-get="/main" hx-target="#main-container" hx-push-url="#" hx-trigger="click"
                 class="flex items-center space-x-3 rtl:space-x-reverse">
                 <img src="../assets/image/logo.png" class="h-20" alt="SMYO Logo" />
@@ -35,20 +36,20 @@
 
                     <li>
                         <!-- Anasayfa link -->
-                        <a href="#" hx-get="/main" hx-target="#main-container" hx-push-url="#" hx-trigger="click"
-                            class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500 dark:bg-blue-600 md:dark:bg-transparent"
-                            aria-current="page">Anasayfa</a>
+                        <a id="link-main" href="#" hx-get="/main" hx-target="#main-container" hx-push-url="#"
+                            hx-trigger="click"
+                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Anasayfa</a>
                     </li>
                     <li>
-                        <!-- Hakkımızda link -->
-                        <a href="#programlar" hx-get="/programlar" hx-target="#main-container" hx-push-url="#programlar"
-                            hx-trigger="click"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Programlar</a>
+                        <!-- Duyurular link -->
+                        <a id="link-duyurular" href="#duyurular" hx-get="/duyurular" hx-target="#main-container"
+                            hx-push-url="#duyurular" hx-trigger="click"
+                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Duyurular</a>
                     </li>
                     <li>
                         <!-- İletişim link -->
-                        <a href="#contact" hx-get="/contact" hx-target="#main-container" hx-push-url="#contact"
-                            hx-trigger="click"
+                        <a id="link-contact" href="#contact" hx-get="/contact" hx-target="#main-container"
+                            hx-push-url="#contact" hx-trigger="click"
                             class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">İletişim</a>
                     </li>
 
@@ -82,9 +83,8 @@
             </div>
         </div>
     </nav>
-
     <div id="main-container">
-        <!-- Content goes here -->
+
 
     </div>
 
@@ -115,7 +115,33 @@
     <script src="../../node_modules/flowbite/dist/flowbite.min.js"></script>
 
     <script>
+        function changeLinkColor() {
+            var hash = window.location.hash.substr(1);
+            hash = hash == "" ? "main" : hash;
+            var link = document.getElementById(`link-${hash}`);
+            var allLinks = document.querySelectorAll("a[hx-get]");
+
+            allLinks.forEach(link => {
+                link.classList.remove("text-blue-700");
+                link.classList.add("text-gray-900");
+            });
+            if (link) {
+                link.classList.remove("text-gray-900");
+                link.classList.add("text-blue-700");
+            }
+        }
+
+        function updateTitle() {
+            var hash = window.location.hash.substr(1);
+            hash = hash == "" ? "Anasayfa" : hash.charAt(0).toUpperCase() + hash.slice(1);
+            hash = hash == "Duyurular" ? "Duyurular" : hash;
+            hash = hash == "Contact" ? "İletişim" : hash;
+            document.title = `${hash} | CÜ Sivas TBMYO Bilgisayar Teknolojileri Bölümü`;
+        }
+
         window.onload = function () {
+            changeLinkColor();
+            updateTitle();
             var hash = window.location.hash.substr(1);
             hash == "" ? hash = "main" : hash = hash;
             if (hash) {
@@ -125,6 +151,11 @@
                 }
             }
         }
+
+        document.body.addEventListener('htmx:afterSwap', function () {
+            changeLinkColor();
+            updateTitle();
+        });
     </script>
 </body>
 

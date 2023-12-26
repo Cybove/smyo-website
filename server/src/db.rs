@@ -114,3 +114,23 @@ pub fn delete_announcement(id: i32) -> Result<()> {
 
     Ok(())
 }
+
+pub fn contact_message(name: &str, email: &str, message: &str) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute(
+        "INSERT INTO messages (name, email, message) VALUES (?1, ?2, ?3)",
+        &[&name, &email, &message],
+    )?;
+
+    Ok(())
+}
+
+pub fn authenticate_user(username: &str, password: &str) -> Result<bool> {
+    let conn = establish_connection()?;
+
+    let mut stmt = conn.prepare("SELECT * FROM users WHERE username = ?1 AND password = ?2")?;
+    let user_iter = stmt.query_map(&[username, password], |_| Ok(()))?;
+
+    return Ok(user_iter.count() > 0);
+}

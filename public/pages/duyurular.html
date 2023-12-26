@@ -1,0 +1,12 @@
+<div id="main-container">
+    <div class="container mt-4 mx-auto md:px-6">
+        <section class="mb-32 text-center">
+            <h2 class="mb-12 pb-4 text-center text-3xl font-bold">
+                Duyurular
+            </h2>
+            <div class="grid gap-6 lg:grid-cols-3 xl:gap-x-12" hx-get="/announcements" hx-swap="innerHTML"
+                hx-trigger="load">
+            </div>
+        </section>
+    </div>
+</div>

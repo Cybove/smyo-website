@@ -23,12 +23,10 @@ pub async fn announcements_handler(_req: HttpRequest) -> Result<HttpResponse> {
         response.push_str(&format!(
             "<div class='mb-6 lg:mb-0'>
                 <div class='relative block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] dark:bg-neutral-700'>
-                    <div class='flex'>
+                    <div class='flex justify-center'>
                         <div class='relative mx-4 -mt-4 overflow-hidden rounded-lg bg-cover bg-no-repeat shadow-lg dark:shadow-black/20' data-te-ripple-init data-te-ripple-color='light'>
-                            <img src='{}' class='w-full' />
-                            <a href='#'>
-                                <div class='absolute top-0 right-0 bottom-0 left-0 h-full w-full overflow-hidden bg-fixed opacity-0 transition duration-300 ease-in-out hover:opacity-100 bg-[hsla(0,0%,98.4%,.15)]'></div>
-                            </a>
+                            <img src='{}' class='object-contain h-64 w-full max-w-md mx-auto' />
+                            <div class='absolute top-0 right-0 bottom-0 left-0 h-full w-full overflow-hidden bg-fixed opacity-0 transition duration-300 ease-in-out hover:opacity-100 bg-[hsla(0,0%,98.4%,.15)]'></div>
                         </div>
                     </div>
                     <div class='p-6'>
@@ -38,7 +36,7 @@ pub async fn announcements_handler(_req: HttpRequest) -> Result<HttpResponse> {
                                 <a>{}</a></small>
                         </p>
                         <button hx-get='/announcement/{}' hx-target='#main-container' class='inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
-                            Read More
+                            Oku
                         </button>
                         </div>
                 </div>
@@ -58,7 +56,7 @@ pub async fn announcement_detail_handler(req: HttpRequest) -> Result<HttpRespons
     let html = format!(
         
         "
-        <a href=\"#\" hx-get=\"/main\" hx-target=\"#main-container\" hx-push-url=\"#\" hx-trigger=\"click\"
+        <a href=\"#duyurular\" hx-get=\"/duyurular\" hx-target=\"#main-container\" hx-push-url=\"#duyurular\" hx-trigger=\"click\"
         class=\"py-4 px-5 text-gray-900 rounded max-w-xs md:bg-transparent flex items-center\" aria-current=\"page\">
         <svg class=\"w-6 h-6 text-gray-800 dark:text-white\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"
             fill=\"none\" viewBox=\"0 0 8 14\">
@@ -75,7 +73,7 @@ pub async fn announcement_detail_handler(req: HttpRequest) -> Result<HttpRespons
 
                 <div class=\"relative\">
                     <img class=\"w-auto h-auto mx-auto rounded-lg shadow-lg object-cover object-center max-w-4xl\"
-                        src=\"{}\" alt=\"Sunset in the mountains\">
+                        src=\"{}\">
                 </div>
 
                 <p class=\"text-gray-900 py-5 text-2xl leading-8 flex-col\">
