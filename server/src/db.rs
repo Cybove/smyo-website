@@ -23,38 +23,25 @@ pub fn create_table() -> Result<()> {
     Ok(())
 }
 
-pub fn add_announcement(
-    image: &str,
-    title: &str,
-    content: &str,
-    date: &str,
-    author: &str,
-) -> Result<()> {
+pub fn get_announcements(page: i32, page_size: i32) -> Result<Vec<Announcement>> {
     let conn = establish_connection()?;
 
-    conn.execute(
-        "INSERT INTO announcements (image, title, content, date, author) VALUES (?1, ?2, ?3, ?4, ?5)",
-        &[&image, &title, &content, &date, &author],
-    )?;
+    let offset = (page - 1) * page_size;
 
-    Ok(())
-}
-
-pub fn get_announcements() -> Result<Vec<Announcement>> {
-    let conn = establish_connection()?;
-
-    let mut stmt = conn.prepare("SELECT * FROM announcements")?;
-    let announcement_iter = stmt.query_map([], |row| {
-        let announcement = Announcement {
-            id: row.get(0)?,
-            image: row.get(1)?,
-            title: row.get(2)?,
-            content: row.get(3)?,
-            date: row.get(4)?,
-            author: row.get(5)?,
-        };
-        Ok(announcement)
-    })?;
+    let mut stmt =
+        conn.prepare("SELECT * FROM announcements ORDER BY id DESC LIMIT ?1 OFFSET ?2")?;
+    let announcement_iter =
+        stmt.query_map(&[&page_size as &dyn ToSql, &offset as &dyn ToSql], |row| {
+            let announcement = Announcement {
+                id: row.get(0)?,
+                image: row.get(1)?,
+                title: row.get(2)?,
+                content: row.get(3)?,
+                date: row.get(4)?,
+                author: row.get(5)?,
+            };
+            Ok(announcement)
+        })?;
 
     let mut announcements = Vec::new();
     for announcement in announcement_iter {
@@ -86,7 +73,24 @@ pub fn get_announcement(id: i32) -> Result<Announcement> {
     Ok(announcements[0].clone())
 }
 
-pub fn update_announcement(
+pub fn add_announcement(
+    image: &str,
+    title: &str,
+    content: &str,
+    date: &str,
+    author: &str,
+) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute(
+        "INSERT INTO announcements (image, title, content, date, author) VALUES (?1, ?2, ?3, ?4, ?5)",
+        &[image, title, content, date, author],
+    )?;
+
+    Ok(())
+}
+
+pub fn edit_announcement(
     id: i32,
     image: &str,
     title: &str,
@@ -98,7 +102,7 @@ pub fn update_announcement(
 
     conn.execute(
         "UPDATE announcements SET image = ?1, title = ?2, content = ?3, date = ?4, author = ?5 WHERE id = ?6",
-        &[&image, &title, &content, &date, &author, &(*id.to_string())],
+        &[image, title, content, date, author, &id.to_string()],
     )?;
 
     Ok(())
@@ -109,7 +113,7 @@ pub fn delete_announcement(id: i32) -> Result<()> {
 
     conn.execute(
         "DELETE FROM announcements WHERE id = ?1",
-        &[&id.to_string() as &dyn ToSql],
+        &[&id.to_string()],
     )?;
 
     Ok(())

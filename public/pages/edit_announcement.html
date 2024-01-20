@@ -1,0 +1,75 @@
+<!-- <form id='announcement-form' hx-encoding="multipart/form-data" hx-post='/admin/announcement/edit' hx-swap='outerHTML'
+    onsubmit='submitForm(event)'>
+    <input type='hidden' name='id' value='{{announcement.id}}'>
+    <input type='file' name='image' value='{{announcement.image}}'>
+    <input type='text' name='title' placeholder='Title' value='{{announcement.title}}'>
+    <input type='hidden' name='date' id='date' value='{{announcement.date}}'>
+    <textarea id='editor'>{{announcement.content}}</textarea>
+    <input type='hidden' name='content' id='contentHtml' value='{{announcement.content}}'>
+    <input type='text' name='author' placeholder='Author' value='{{announcement.author}}'>
+    <button type='submit'>Submit</button>
+</form>
+<button hx-get='/admin/dashboard' hx-swap='outerHTML' hx-target='#dashboard-container'>Cancel</button> -->
+
+<form id='announcement-form' class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" hx-encoding="multipart/form-data"
+    hx-post='/admin/announcement/edit' hx-swap='outerHTML' onsubmit='submitForm(event)'>
+    <input type='hidden' name='id' value='{{announcement.id}}'>
+    <div class="mb-4">
+        <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            type='file' name='image' value='{{announcement.image}}'>
+    </div>
+    <div class="mb-4">
+        <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            type='text' name='title' placeholder='Title' value='{{announcement.title}}'>
+    </div>
+    <input type='hidden' name='date' id='date' value='{{announcement.date}}'>
+    <div class="mb-4">
+        <textarea
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id='editor'>{{announcement.content}}</textarea>
+    </div>
+    <input type='hidden' name='content' id='contentHtml' value='{{announcement.content}}'>
+    <div class="mb-4">
+        <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            type='text' name='author' placeholder='Author' value='{{announcement.author}}'>
+    </div>
+    <div class="flex items-center justify-between">
+        <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type='submit'>Submit</button>
+    </div>
+</form>
+<button
+    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+    hx-get='/admin/dashboard' hx-swap='outerHTML' hx-target='#dashboard-container'>Cancel</button>
+
+<script>
+    var editor = new Jodit('#editor', {
+        "uploader": {
+            "insertImageAsBase64URI": true
+        },
+        "language": "tr",
+        toolbarAdaptive: false,
+        toolbarSticky: false,
+        toolbar: true,
+        height: 500,
+        minHeight: 400,
+        width: 1000,
+        defaultMode: Jodit.MODE_WYSIWYG,
+    });
+
+    function submitForm(event) {
+        var htmlContent = editor.value;
+        document.getElementById('contentHtml').value = htmlContent;
+
+        var imageInput = document.querySelector("input[name='image']");
+        var image = imageInput.files[0];
+        var id = document.querySelector("input[name='id']").value;
+        var title = document.querySelector("input[name='title']").value;
+        var date = document.querySelector("input[name='date']").value;
+        var author = document.querySelector("input[name='author']").value;
+    }
+</script>

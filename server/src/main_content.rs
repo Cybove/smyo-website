@@ -1,7 +1,6 @@
 use crate::src::db;
 use actix_web::{web::Json, HttpRequest, HttpResponse, Responder, Result};
 use serde::Serialize;
-use serde_derive::Serialize;
 use std::path::PathBuf;
 
 #[derive(Clone, Serialize)]
@@ -15,7 +14,7 @@ pub struct Announcement {
 }
 
 pub async fn announcements_handler(_req: HttpRequest) -> Result<HttpResponse> {
-    let announcements = db::get_announcements()
+    let announcements = db::get_announcements(3,3)
         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
     let mut response = String::new();

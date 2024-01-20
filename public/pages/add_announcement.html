@@ -1,0 +1,38 @@
+<form id='announcement-form' hx-encoding="multipart/form-data" hx-post='/admin/announcements/add' hx-swap='outerHTML'
+    onsubmit='submitForm(event)'>
+    <input type='file' name='image'>
+    <input type='text' name='title' placeholder='Title'>
+    <input type='hidden' name='date' id='date'>
+    <textarea id='editor'></textarea>
+    <input type='hidden' name='content' id='contentHtml'>
+    <input type='text' name='author' placeholder='Author'>
+    <button type='submit'>Submit</button>
+</form>
+<button hx-get='/admin/dashboard' hx-swap='outerHTML' hx-target='#dashboard-container'>Cancel</button>
+
+<script>
+    var editor = new Jodit('#editor', {
+        "uploader": {
+            "insertImageAsBase64URI": true
+        },
+        "language": "tr",
+        toolbarAdaptive: false,
+        toolbarSticky: false,
+        toolbar: true,
+        height: 500,
+        minHeight: 400,
+        width: 1000,
+        defaultMode: Jodit.MODE_WYSIWYG,
+    });
+
+    function submitForm(event) {
+        var htmlContent = editor.value;
+        document.getElementById('contentHtml').value = htmlContent;
+
+        var image = document.querySelector("input[name='image']").files[0];
+        var title = document.querySelector("input[name='title']").value;
+        var date = document.querySelector("input[name='date']").value;
+        var author = document.querySelector("input[name='author']").value;
+    }
+
+</script>
