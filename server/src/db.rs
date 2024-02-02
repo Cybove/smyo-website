@@ -23,7 +23,10 @@ pub fn create_table() -> Result<()> {
     Ok(())
 }
 
-pub fn get_announcements(page: i32, page_size: i32) -> Result<Vec<Announcement>> {
+pub fn get_announcements(
+    page: i32,
+    page_size: i32,
+) -> Result<(Vec<Announcement>, i32), rusqlite::Error> {
     let conn = establish_connection()?;
 
     let offset = (page - 1) * page_size;
@@ -47,7 +50,11 @@ pub fn get_announcements(page: i32, page_size: i32) -> Result<Vec<Announcement>>
     for announcement in announcement_iter {
         announcements.push(announcement?);
     }
-    Ok(announcements)
+
+    let total_announcements: i32 =
+        conn.query_row("SELECT COUNT(*) FROM announcements", [], |row| row.get(0))?;
+
+    Ok((announcements, total_announcements))
 }
 
 pub fn get_announcement(id: i32) -> Result<Announcement> {
@@ -137,4 +144,52 @@ pub fn authenticate_user(username: &str, password: &str) -> Result<bool> {
     let user_iter = stmt.query_map(&[username, password], |_| Ok(()))?;
 
     return Ok(user_iter.count() > 0);
+}
+
+pub fn get_users() -> Result<Vec<String>, rusqlite::Error> {
+    let conn = establish_connection()?;
+
+    let mut stmt = conn.prepare("SELECT name,username FROM users")?;
+    let user_iter = stmt.query_map([], |row| {
+        let name: String = row.get(0)?;
+        let username: String = row.get(1)?;
+        Ok(format!("{} ({})", name, username))
+    })?;
+
+    let mut users = Vec::new();
+    for user in user_iter {
+        users.push(user?);
+    }
+
+    Ok(users)
+}
+
+pub fn add_user(name: &str, username: &str, password: &str) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute(
+        "INSERT INTO users (name, username, password) VALUES (?1, ?2, ?3)",
+        &[&name, &username, &password],
+    )?;
+
+    Ok(())
+}
+
+pub fn delete_user(username: &str) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute("DELETE FROM users WHERE username = ?1", &[&username])?;
+
+    Ok(())
+}
+
+pub fn edit_user(username: &str, name: &str, password: &str) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute(
+        "UPDATE users SET name = ?1, password = ?2 WHERE username = ?3",
+        &[&name, &password, &username],
+    )?;
+
+    Ok(())
 }

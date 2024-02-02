@@ -1,7 +1,9 @@
 use crate::src::db;
 use actix_web::{web::Json, HttpRequest, HttpResponse, Responder, Result};
 use serde::Serialize;
+use serde_derive::Deserialize;
 use std::path::PathBuf;
+use actix_web::web::Query;
 
 #[derive(Clone, Serialize)]
 pub struct Announcement {
@@ -13,11 +15,55 @@ pub struct Announcement {
     pub author: String,
 }
 
-pub async fn announcements_handler(_req: HttpRequest) -> Result<HttpResponse> {
-    let announcements = db::get_announcements(3,3)
+#[derive(Deserialize)]
+pub struct Pagination {
+    page: Option<i32>,
+    page_size: Option<i32>,
+}
+
+// pub async fn announcements_handler(_req: HttpRequest) -> Result<HttpResponse> {
+//     let (announcements, _total_announcements) = db::get_announcements(3,3)
+//         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+//     let mut response = String::new();
+//     for announcement in announcements {
+//         response.push_str(&format!(
+//             "<div class='mb-6 lg:mb-0'>
+//                 <div class='relative block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] dark:bg-neutral-700'>
+//                     <div class='flex justify-center'>
+//                         <div class='relative mx-4 -mt-4 overflow-hidden rounded-lg bg-cover bg-no-repeat shadow-lg dark:shadow-black/20' data-te-ripple-init data-te-ripple-color='light'>
+//                             <img src='{}' class='object-contain h-64 w-full max-w-md mx-auto' />
+//                             <div class='absolute top-0 right-0 bottom-0 left-0 h-full w-full overflow-hidden bg-fixed opacity-0 transition duration-300 ease-in-out hover:opacity-100 bg-[hsla(0,0%,98.4%,.15)]'></div>
+//                         </div>
+//                     </div>
+//                     <div class='p-6'>
+//                         <h5 class='mb-3 text-lg font-bold'>{}</h5>
+//                         <p class='mb-4 text-neutral-500 dark:text-neutral-300'>
+//                             <small>Published <u>{}</u> by
+//                                 <a>{}</a></small>
+//                         </p>
+//                         <button hx-get='/announcement/{}' hx-target='#main-container' class='inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
+//                             Oku
+//                         </button>
+//                         </div>
+//                 </div>
+//             </div>",
+//             announcement.image, announcement.title, announcement.date, announcement.author, announcement.id
+//         ));
+//     }
+
+//     Ok(HttpResponse::Ok().content_type("text/html").body(response))
+// }
+
+pub async fn announcements_handler(
+    req: HttpRequest,
+) -> Result<HttpResponse> {
+    let page: i32 = req.match_info().get("page").unwrap_or("1").parse().unwrap_or(1);
+    let (announcements, total_announcements) = db::get_announcements(page, 3)
         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
     let mut response = String::new();
+    response.push_str("<div class='grid gap-6 lg:grid-cols-3 xl:gap-x-12'>");
     for announcement in announcements {
         response.push_str(&format!(
             "<div class='mb-6 lg:mb-0'>
@@ -44,8 +90,38 @@ pub async fn announcements_handler(_req: HttpRequest) -> Result<HttpResponse> {
         ));
     }
 
+    response.push_str("</div>");
+
+response.push_str("<div class='flex justify-center mt-4'>");
+
+if page > 1 {
+    let prev_page = page - 1;
+    response.push_str(&format!(
+        "<button class='px-4 py-2 text-black bg-gray-100 rounded hover:bg-gray-500 mr-8' hx-get='/announcements/{}' hx-boost='true' hx-target='#announcement-container'><svg class='w-6 h-6 me-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
+        <path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 5H1m0 0 4 4M1 5l4-4'/>
+        </svg>
+        </button>",
+        prev_page
+    ));
+}
+
+if page * 3 < total_announcements {
+    let next_page = page + 1;
+    response.push_str(&format!(
+        "<button class='px-4 py-2 text-black bg-gray-100 rounded hover:bg-gray-500 ml-8' hx-get='/announcements/{}' hx-boost='true' hx-target='#announcement-container'><svg class='w-6 h-6 ms-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
+        <path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5h12m0 0L9 1m4 4L9 9'/>
+        </svg>
+        </button>",
+        next_page
+    ));
+}
+
+response.push_str("</div>");
+    
+    response.push_str("</div>");
     Ok(HttpResponse::Ok().content_type("text/html").body(response))
 }
+
 
 pub async fn announcement_detail_handler(req: HttpRequest) -> Result<HttpResponse> {
     let id: i32 = req.match_info().get("id").unwrap().parse().unwrap();

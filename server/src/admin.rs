@@ -4,6 +4,7 @@ use actix_session::{storage::CookieSessionStore, Session, SessionMiddleware};
 use actix_web::cookie::Key;
 use actix_web::http::header::ContentDisposition;
 use actix_web::web::BytesMut;
+use actix_web::web::Query;
 use actix_web::web::{self, Bytes};
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, Result};
 use futures::{StreamExt, TryFutureExt, TryStreamExt};
@@ -18,6 +19,13 @@ use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct LoginForm {
+    username: String,
+    password: String,
+}
+
+#[derive(Deserialize)]
+pub struct User {
+    name: String,
     username: String,
     password: String,
 }
@@ -54,6 +62,12 @@ pub struct EditAnnouncementForm {
 #[derive(Deserialize)]
 pub struct DeleteAnnouncementForm {
     pub id: i32,
+}
+
+#[derive(Deserialize)]
+pub struct Pagination {
+    page: Option<i32>,
+    page_size: Option<i32>,
 }
 
 pub async fn handler(_req: HttpRequest) -> Result<HttpResponse> {
@@ -107,24 +121,27 @@ pub async fn admin_dashboard_handler(session: Session) -> Result<HttpResponse> {
 }
 
 pub async fn admin_user_handler(_req: HttpRequest) -> Result<HttpResponse> {
-    let path: PathBuf = "../public/pages/user.html".parse().unwrap();
+    let path: PathBuf = "../public/pages/users.html".parse().unwrap();
     let content = tokio::fs::read_to_string(path).await?;
     Ok(HttpResponse::Ok().content_type("text/html").body(content))
 }
 
-pub async fn admin_announcements_handler(req: HttpRequest) -> Result<HttpResponse> {
-    let page: i32 = req
-        .match_info()
-        .get("page")
-        .unwrap_or("1")
-        .parse()
-        .unwrap_or(1);
-    let page_size: i32 = 3;
-    let announcements = db::get_announcements(page, page_size)
+pub async fn admin_announcements_handler(
+    Query(pagination): Query<Pagination>,
+) -> Result<HttpResponse> {
+    let page: i32 = pagination.page.unwrap_or(1);
+    let page_size: i32 = pagination.page_size.unwrap_or(3);
+
+    let (announcements, total_announcements) = db::get_announcements(page, page_size)
         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
-    let mut content = String::from("<button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-auto mt-4 rounded items-center justify-center' hx-get='/admin/announcements/add/form' hx-swap='innerHTML' hx-target='#dashboard-container'>           Yeni Duyuru Ekle           </button>");
+    let total_pages = (total_announcements as f32 / page_size as f32).ceil() as i32;
 
+    let mut content = String::from("
+    <div class='flex justify-center'>
+        <button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded' hx-get='/admin/announcements/add/form' hx-swap='innerHTML' hx-target='#dashboard-container'>           Yeni Duyuru Ekle           </button>
+    </div>
+    ");
     for announcement in &announcements {
         let mut announcement_content =
             tokio::fs::read_to_string("../public/pages/announcements.html").await?;
@@ -136,15 +153,22 @@ pub async fn admin_announcements_handler(req: HttpRequest) -> Result<HttpRespons
         content.push_str(&announcement_content);
     }
 
-    let previous_page = if page > 1 { page - 1 } else { 1 };
-    let next_page = page + 1;
-
-    let pagination = format!("<div class='flex'>
-    <a hx-get='/admin/announcements?page={previous_page}' hx-trigger='click' hx-target='#dashboard-container' class='flex items-center justify-center px-4 h-10 text-base font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'>Previous</a>
-    <a hx-get='/admin/announcements?page={next_page}' hx-trigger='click' hx-target='#dashboard-container' class='flex items-center justify-center px-4 h-10 ms-3 text-base font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'>Next</a>
-    </div>");
-
-    content.push_str(&pagination);
+    content.push_str("<div class='flex justify-center items-center mt-4 mb-4 space-x-2'>");
+    if page > 1 {
+        content.push_str(&format!(
+            "<button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' hx-get='/admin/announcements?page={}&page_size={}' hx-swap='innerHTML' hx-target='#dashboard-container'>Önceki Sayfa</button>",
+            page - 1,
+            page_size
+        ));
+    }
+    if page < total_pages {
+        content.push_str(&format!(
+            "<button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' hx-get='/admin/announcements?page={}&page_size={}' hx-swap='innerHTML' hx-target='#dashboard-container'>Sonraki Sayfa</button>",
+            page + 1,
+            page_size
+        ));
+    }
+    content.push_str("</div>");
 
     Ok(HttpResponse::Ok().content_type("text/html").body(content))
 }
@@ -402,11 +426,58 @@ pub async fn edit_announcement_handler(mut payload: Multipart) -> Result<HttpRes
     }
 }
 
-pub async fn delete_announcement_handler(
-    id: web::Path<i32>,
-) -> Result<HttpResponse, actix_web::Error> {
-    match db::delete_announcement(id.into_inner()) {
-        Ok(_) => Ok(HttpResponse::Ok().finish()),
-        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
+pub async fn delete_announcement_handler(req: HttpRequest) -> Result<HttpResponse> {
+    let id: i32 = req
+        .match_info()
+        .get("id")
+        .unwrap_or("0")
+        .parse()
+        .unwrap_or(0);
+
+    db::delete_announcement(id)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(""))
+}
+
+pub async fn add_user_handler(form: web::Form<User>) -> impl Responder {
+    let user = form.into_inner();
+
+    match db::add_user(&user.name, &user.username, &user.password) {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
     }
+}
+
+pub async fn add_user_form_handler() -> Result<HttpResponse, actix_web::Error> {
+    let path: PathBuf = "../public/pages/add_user.html".parse().unwrap();
+    let form = tokio::fs::read_to_string(path).await?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(form))
+}
+
+pub async fn render_user_list(users: &[String]) -> Result<String, Box<dyn std::error::Error>> {
+    let path: PathBuf = "../public/pages/user_list.html".parse().unwrap();
+    let mut template = tokio::fs::read_to_string(path).await?;
+
+    let user_rows = users.iter().map(|user| {
+        let parts: Vec<&str> = user.split(" (").collect();
+        let name = parts[0];
+        let username = parts[1].trim_end_matches(')');
+        format!("<tr>\n<td class=\"px-6 py-4 whitespace-nowrap\">{}</td>\n<td class=\"px-6 py-4 whitespace-nowrap\">{}</td>\n<td class=\"px-6 py-4 whitespace-nowrap\"><button class=\"px-4 py-2 text-white bg-blue-500 rounded\">Edit</button> <button class=\"px-4 py-2 text-white bg-red-500 rounded\">Delete</button></td>\n</tr>\n", name, username)
+    }).collect::<Vec<String>>().join("");
+
+    template = template.replace("{{users}}", &user_rows);
+
+    Ok(template)
+}
+
+pub async fn get_user_list_handler() -> Result<HttpResponse, actix_web::Error> {
+    let users =
+        db::get_users().map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    let rendered = render_user_list(&users)
+        .await
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(rendered))
 }

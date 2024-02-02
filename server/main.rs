@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
             )
             .route("/main", web::get().to(src::main_content::handler))
             .route(
-                "/announcements",
+                "/announcements/{page}",
                 web::get().to(src::main_content::announcements_handler),
             )
             .route(
@@ -62,11 +62,23 @@ async fn main() -> Result<()> {
                 web::resource("/admin/announcements/delete/{id}")
                     .route(web::post().to(src::admin::delete_announcement_handler)),
             )
+            .service(
+                web::resource("/admin/user/list")
+                    .route(web::get().to(src::admin::get_user_list_handler)),
+            )
+            .service(
+                web::resource("/admin/user/add/form")
+                    .route(web::get().to(src::admin::add_user_form_handler)),
+            )
+            .service(
+                web::resource("/admin/user/add")
+                    .route(web::post().to(src::admin::add_user_handler)),
+            )
             .service(Files::new("/node_modules", "../node_modules"))
             .service(Files::new("/pages", "../public/pages").index_file("index.html"))
             .service(Files::new("/", "../public").index_file("index.html"))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("192.168.1.6:1907")?
     .run()
     .await
 }
