@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-css": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "build-css": "npx tailwindcss -o ./public/css/styles.css",
     "serve": "cd server && cargo run",
     "build": "cargo build --release --bin smyo"
   },
@@ -16,6 +16,7 @@
     "htmx": "^0.0.2",
     "jodit": "^4.0.1",
     "lexical": "^0.12.6",
+    "npx": "^10.2.2",
     "swiper": "^11.0.5",
     "tailwindcss": "^3.3.6"
   }
