@@ -1,6 +1,7 @@
 mod src;
 
 use crate::src::db;
+use actix_cors::Cors;
 use actix_files::Files;
 use actix_session::{storage::CookieSessionStore, Session, SessionMiddleware};
 use actix_web::cookie::Key;
@@ -78,7 +79,7 @@ async fn main() -> Result<()> {
             .service(Files::new("/pages", "../public/pages").index_file("index.html"))
             .service(Files::new("/", "../public").index_file("index.html"))
     })
-    .bind("192.168.1.6:1907")?
+    .bind("192.168.1.6:8080")?
     .run()
     .await
 }

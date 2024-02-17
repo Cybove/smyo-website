@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-css": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "serve": "cd server && cargo run",
+    "build": "cargo build --release --bin smyo"
   },
   "author": "",
   "license": "ISC",
