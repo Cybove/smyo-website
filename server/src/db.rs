@@ -1,27 +1,28 @@
 use crate::src::main_content::Announcement;
+use bcrypt::{hash, verify, DEFAULT_COST};
 use rusqlite::{Connection, Result, ToSql};
 
 pub fn establish_connection() -> Result<Connection> {
     Connection::open("./db/database.db")
 }
 
-pub fn create_table() -> Result<()> {
-    let conn = establish_connection()?;
+// pub fn create_table() -> Result<()> {
+//     let conn = establish_connection()?;
 
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS announcements (
-            id INTEGER PRIMARY KEY,
-            image TEXT NOT NULL,
-            title TEXT NOT NULL,
-            content TEXT NOT NULL,
-            date TEXT NOT NULL,
-            author TEXT NOT NULL
-        )",
-        [],
-    )?;
+//     conn.execute(
+//         "CREATE TABLE IF NOT EXISTS announcements (
+//             id INTEGER PRIMARY KEY,
+//             image TEXT NOT NULL,
+//             title TEXT NOT NULL,
+//             content TEXT NOT NULL,
+//             date TEXT NOT NULL,
+//             author TEXT NOT NULL
+//         )",
+//         [],
+//     )?;
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 pub fn get_announcements(
     page: i32,
@@ -137,13 +138,19 @@ pub fn contact_message(name: &str, email: &str, message: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn authenticate_user(username: &str, password: &str) -> Result<bool> {
+pub fn authenticate_user(username: &str, password: &str) -> Result<bool, rusqlite::Error> {
     let conn = establish_connection()?;
 
-    let mut stmt = conn.prepare("SELECT * FROM users WHERE username = ?1 AND password = ?2")?;
-    let user_iter = stmt.query_map(&[username, password], |_| Ok(()))?;
+    let mut stmt = conn.prepare("SELECT password FROM users WHERE username = ?1")?;
+    let mut user_iter = stmt.query_map(&[username], |row| {
+        let hashed_password: String = row.get(0)?;
+        let is_password_match = verify(password, &hashed_password).unwrap_or(false);
+        Ok(is_password_match)
+    })?;
 
-    return Ok(user_iter.count() > 0);
+    let is_authenticated = user_iter.any(|result| result.unwrap_or(false));
+
+    Ok(is_authenticated)
 }
 
 pub fn get_users() -> Result<Vec<String>, rusqlite::Error> {
@@ -164,14 +171,34 @@ pub fn get_users() -> Result<Vec<String>, rusqlite::Error> {
     Ok(users)
 }
 
-pub fn add_user(name: &str, username: &str, password: &str) -> Result<()> {
+pub fn get_user(username: &str) -> Result<(String, String), rusqlite::Error> {
     let conn = establish_connection()?;
 
+    let mut stmt = conn.prepare("SELECT name,username FROM users WHERE username = ?1")?;
+    let mut user_iter = stmt.query_map(&[username], |row| {
+        let name: String = row.get(0)?;
+        let username: String = row.get(1)?;
+        Ok((name, username))
+    })?;
+
+    let mut user = user_iter
+        .next()
+        .unwrap_or(Ok(("".to_string(), "".to_string())))?;
+
+    Ok(user)
+}
+
+pub fn add_user(
+    name: &str,
+    username: &str,
+    password: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let conn = establish_connection()?;
+    let hashed_password = hash(password, DEFAULT_COST)?;
     conn.execute(
         "INSERT INTO users (name, username, password) VALUES (?1, ?2, ?3)",
-        &[&name, &username, &password],
+        &[&name, &username, &hashed_password as &str],
     )?;
-
     Ok(())
 }
 
@@ -183,13 +210,26 @@ pub fn delete_user(username: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn edit_user(username: &str, name: &str, password: &str) -> Result<()> {
-    let conn = establish_connection()?;
-
-    conn.execute(
-        "UPDATE users SET name = ?1, password = ?2 WHERE username = ?3",
-        &[&name, &password, &username],
-    )?;
-
-    Ok(())
+pub fn edit_user(
+    username: &str,
+    name: &str,
+    new_username: &str,
+    password: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if password.is_empty() {
+        let conn = establish_connection()?;
+        conn.execute(
+            "UPDATE users SET name = ?1, username = ?2 WHERE username = ?3",
+            &[&name, &new_username, &username],
+        )?;
+        return Ok(());
+    } else {
+        let conn = establish_connection()?;
+        let hashed_password = hash(password, DEFAULT_COST)?;
+        conn.execute(
+            "UPDATE users SET name = ?1, username = ?2, password = ?3 WHERE username = ?4",
+            &[&name, &new_username, &hashed_password as &str, &username],
+        )?;
+        return Ok(());
+    }
 }

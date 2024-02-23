@@ -103,6 +103,11 @@ pub async fn login_handler(form: web::Form<LoginForm>, mut session: Session) -> 
     }
 }
 
+pub async fn logout_handler(mut session: Session) -> Result<HttpResponse> {
+    session.remove("user_id");
+    Ok(HttpResponse::Ok().finish())
+}
+
 pub async fn admin_dashboard_handler(session: Session) -> Result<HttpResponse> {
     match session.get::<String>("user_id") {
         Ok(user_id_option) => {
@@ -440,12 +445,19 @@ pub async fn delete_announcement_handler(req: HttpRequest) -> Result<HttpRespons
     Ok(HttpResponse::Ok().content_type("text/html").body(""))
 }
 
-pub async fn add_user_handler(form: web::Form<User>) -> impl Responder {
+pub async fn add_user_handler(form: web::Form<User>) -> Result<HttpResponse, actix_web::Error> {
     let user = form.into_inner();
 
     match db::add_user(&user.name, &user.username, &user.password) {
-        Ok(_) => HttpResponse::Ok().finish(),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Ok(_) => {
+            let users = db::get_users().unwrap();
+            let user_list_html = render_user_list(&users).await.unwrap();
+
+            let mut response = HttpResponse::Ok();
+            response.header("HX-Trigger", "refreshUserList");
+            Ok(response.body(user_list_html))
+        }
+        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
     }
 }
 
@@ -455,16 +467,92 @@ pub async fn add_user_form_handler() -> Result<HttpResponse, actix_web::Error> {
     Ok(HttpResponse::Ok().content_type("text/html").body(form))
 }
 
+// pub async fn edit_user_form_handler(_req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
+//     let path: PathBuf = "../public/pages/edit_user.html".parse().unwrap();
+//     let form = tokio::fs::read_to_string(path).await?;
+//     Ok(HttpResponse::Ok().content_type("text/html").body(form))
+// }
+
+// pub async fn edit_user_handler(_req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
+//     // get
+// }
+
+pub async fn edit_user_form_handler(req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
+    let username: String = req.match_info().query("username").parse().unwrap();
+    let user = db::get_user(&username).unwrap();
+
+    let path: PathBuf = "../public/pages/edit_user.html".parse().unwrap();
+    let mut form = tokio::fs::read_to_string(path).await?;
+
+    form = form.replace("{{name}}", &user.0);
+    form = form.replace("{{username}}", &user.1);
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(form))
+}
+
+pub async fn edit_user_handler(
+    req: HttpRequest,
+    form: web::Form<User>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let username: String = req.match_info().query("username").parse().unwrap();
+    let user = form.into_inner();
+
+    match db::edit_user(&username, &user.name, &user.username, &user.password) {
+        Ok(_) => {
+            let users = db::get_users().unwrap();
+            let user_list_html = render_user_list(&users).await.unwrap();
+
+            let mut response = HttpResponse::Ok();
+            response.header("HX-Trigger", "refreshUserList");
+            Ok(response.body(user_list_html))
+        }
+        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
+    }
+}
+
+pub async fn delete_user_handler(req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
+    let username: String = req.match_info().query("username").parse().unwrap();
+
+    match db::delete_user(&username) {
+        Ok(_) => {
+            let users = db::get_users().unwrap();
+
+            let user_list_html = render_user_list(&users).await.unwrap();
+
+            let mut response = HttpResponse::Ok();
+            response.header("HX-Trigger", "refreshUserList");
+            Ok(response.body(user_list_html))
+        }
+        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
+    }
+}
+
 pub async fn render_user_list(users: &[String]) -> Result<String, Box<dyn std::error::Error>> {
     let path: PathBuf = "../public/pages/user_list.html".parse().unwrap();
     let mut template = tokio::fs::read_to_string(path).await?;
 
-    let user_rows = users.iter().map(|user| {
-        let parts: Vec<&str> = user.split(" (").collect();
-        let name = parts[0];
-        let username = parts[1].trim_end_matches(')');
-        format!("<tr>\n<td class=\"px-6 py-4 whitespace-nowrap\">{}</td>\n<td class=\"px-6 py-4 whitespace-nowrap\">{}</td>\n<td class=\"px-6 py-4 whitespace-nowrap\"><button class=\"px-4 py-2 text-white bg-blue-500 rounded\">Edit</button> <button class=\"px-4 py-2 text-white bg-red-500 rounded\">Delete</button></td>\n</tr>\n", name, username)
-    }).collect::<Vec<String>>().join("");
+    let user_rows = users
+        .iter()
+        .map(|user| {
+            let parts: Vec<&str> = user.split(" (").collect();
+            let name = parts[0];
+            let username = parts[1].trim_end_matches(')');
+            format!(
+                "<tr class=\"border\">\n
+                <td class=\"border px-6 py-4 whitespace-nowrap\">{}</td>\n
+                <td class=\"border px-6 py-4 whitespace-nowrap\">{}</td>\n
+                <td class=\"border px-6 py-4 whitespace-nowrap\">
+                <button hx-get=\"/admin/user/edit/form/{}\" hx-target=\"#modal-content .space-y-4\" hx-trigger=\"click\" class=\"px-4 py-2 text-white bg-blue-500 rounded\">Edit</button>
+                <button class=\"px-4 py-2 text-white bg-red-500 rounded\"
+                hx-delete=\"/admin/user/delete/{}\" hx-swap=\"innerHTML\" hx-target=\"#user-list\"
+                hx-confirm=\"Are you sure you want to delete this user?\">Delete</button>
+                </td>\n
+                </tr>\n",
+                name, username, username, username
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("");
 
     template = template.replace("{{users}}", &user_rows);
 

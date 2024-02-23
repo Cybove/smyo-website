@@ -1,9 +1,9 @@
-<form hx-post="/admin/user/add" hx-target="#user-list" hx-swap="innerHTML" hx-trigger="submit">
+<form hx-post="/admin/user/edit/{{username}}" hx-target="#user-list" hx-swap="innerHTML" hx-trigger="submit">
     <div class="mb-4">
         <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
             Name
         </label>
-        <input name="name" required
+        <input name="name" value="{{name}}" required
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="name" type="text" placeholder="Name">
     </div>
@@ -11,7 +11,7 @@
         <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
             Username
         </label>
-        <input name="username" required
+        <input name="username" value="{{username}}" required
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="username" type="text" placeholder="Username">
     </div>
@@ -19,7 +19,7 @@
         <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
             Password
         </label>
-        <input name="password" required
+        <input name="password"
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="password" type="password" placeholder="Password">
     </div>
