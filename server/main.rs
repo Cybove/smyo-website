@@ -37,6 +37,7 @@ async fn main() -> Result<()> {
                 web::get().to(src::admin::admin_dashboard_handler),
             )
             .route("/main", web::get().to(src::main_content::handler))
+            .route("/slider", web::get().to(src::slider::handler))
             .route(
                 "/announcements/{page}",
                 web::get().to(src::main_content::announcements_handler),
@@ -49,6 +50,18 @@ async fn main() -> Result<()> {
             .route(
                 "/admin/announcements",
                 web::get().to(src::admin::admin_announcements_handler),
+            )
+            .route(
+                "/admin/inbox",
+                web::get().to(src::admin::admin_inbox_handler),
+            )
+            .route(
+                "/admin/gallery",
+                web::get().to(src::admin::admin_gallery_handler),
+            )
+            .route(
+                "/admin/messages",
+                web::get().to(src::admin::get_messages_handler),
             )
             .route("/contact", web::get().to(src::contact::handler))
             .route("/contact", web::post().to(src::contact::post_handler))
@@ -99,6 +112,7 @@ async fn main() -> Result<()> {
             )
             .service(Files::new("/node_modules", "../node_modules"))
             .service(Files::new("/pages", "../public/pages").index_file("index.html"))
+            .service(Files::new("/public/assets/slider", "../public/assets/slider"))
             .service(Files::new("/", "../public").index_file("index.html"))
     })
     .bind(format!("{}:{}", ip_address, port))?

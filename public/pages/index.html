@@ -9,13 +9,15 @@
     <link rel="stylesheet" href="../../node_modules/flowbite/dist/flowbite.min.css">
     <link href="https://cdn.jsdelivr.net/npm/swiper@11.0.5/swiper-bundle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../../node_modules/jodit/es5/jodit.min.css" />
+    <script src="../../node_modules/jodit/es5/jodit.min.js"></script>
 </head>
 
 <body class="bg-pattern bg-cover bg-center">
 
     <nav class="bg-white border-gray-500 shadow-2xl shadow-gray-500 border-spacing-6 rounded-lg m-4 p-2">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-0">
-            <a href="/main" hx-get="/main" hx-target="#main-container" hx-push-url="#" hx-trigger="click"
+            <a href="/" hx-get="/main" hx-target="#main-container" hx-push-url="#" hx-trigger="click"
                 class="flex items-center space-x-3 rtl:space-x-reverse">
                 <img src="../assets/image/logo.png" class="h-20" alt="SMYO Logo" />
                 <span class="self-center text-2xl font-semibold whitespace-nowrap"></span>
@@ -111,7 +113,7 @@
     <script src="https://unpkg.com/htmx.org@1.9.9"
         integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX"
         crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11.0.5/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="../../node_modules/flowbite/dist/flowbite.min.js"></script>
 
     <script>
@@ -156,7 +158,24 @@
             changeLinkColor();
             updateTitle();
         });
+
+
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            if (event.target.classList.contains('swiper-wrapper')) {
+                var mySwiper = new Swiper('.mySwiper', {
+                    slidesPerView: 1,
+                    spaceBetween: 30,
+                    loop: true,
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                });
+            }
+        });
+
     </script>
+
 </body>
 
 </html>

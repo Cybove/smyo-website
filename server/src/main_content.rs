@@ -77,8 +77,9 @@ pub async fn announcements_handler(
                     <div class='p-6'>
                         <h5 class='mb-3 text-lg font-bold'>{}</h5>
                         <p class='mb-4 text-neutral-500 dark:text-neutral-300'>
-                            <small>Published <u>{}</u> by
-                                <a>{}</a></small>
+                            <small><u>{}</u>
+                            <br/>
+                            <a>{}</a></small>
                         </p>
                         <button hx-get='/announcement/{}' hx-target='#main-container' class='inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
                             Oku
@@ -146,14 +147,16 @@ pub async fn announcement_detail_handler(req: HttpRequest) -> Result<HttpRespons
                     class=\"text-3xl sm:text-4xl font-semibold inline-block hover:text-indigo-600 transition duration-500 ease-in-out mb-2\">{}
                 </a>
 
-                <div class=\"relative\">
-                    <img class=\"w-auto h-auto mx-auto rounded-lg shadow-lg object-cover object-center max-w-4xl\"
+                <div class=\"relative mb-12\">
+                    <img class=\"w-64 h-64 mx-auto rounded-lg shadow-lg object-cover object-center max-w-4xl\"
                         src=\"{}\">
                 </div>
 
-                <p class=\"text-gray-900 py-5 text-2xl leading-8 flex-col\">
-                    {}
-                </p>
+                <div class=\"mb-12 w-1/2 p-4 mx-auto justify-center items-center text-center bg-gray-300 border-2 border-gray-300 rounded-lg shadow-lg jodit-wysiwyg\">
+                    <div class=\"text-black py-0 text-2xl leading-8\">
+                        {}
+                    </div>
+                </div>
 
                 <div class=\"py-5 text-sm font-regular text-gray-900 flex\">
                     <span class=\"mr-3 flex flex-row items-center\">

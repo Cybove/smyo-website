@@ -19,11 +19,7 @@
                 id='editor'></textarea>
         </div>
         <input type='hidden' name='content' id='contentHtml'>
-        <div class="mb-4">
-            <input
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                type='text' name='author' placeholder='Author'>
-        </div>
+        <input type='hidden' name='author' id='author'>
         <div class="flex items-center justify-between">
             <button
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -44,6 +40,85 @@
 </div>
 
 <script>
+    // var editor = new Jodit('#editor', {
+    //     "uploader": {
+    //         "insertImageAsBase64URI": true
+    //     },
+    //     "language": "tr",
+    //     toolbarAdaptive: false,
+    //     toolbarSticky: false,
+    //     toolbar: true,
+    //     height: 500,
+    //     minHeight: 400,
+    //     width: 1000,
+    //     defaultMode: Jodit.MODE_WYSIWYG,
+    // });
+
+    var buttons = Jodit.defaultOptions.buttons.slice();
+
+    var addBorderButton = {
+        name: 'addBorder',
+        icon: 'table',
+        exec: function (editor) {
+            var current = editor.selection.current();
+            if (current) {
+                var table = current.closest('table');
+                if (table) {
+                    table.style.border = '1px solid black';
+                    var cells = table.querySelectorAll('td, th');
+                    for (var i = 0; i < cells.length; i++) {
+                        cells[i].style.border = '1px solid black';
+                    }
+                }
+            }
+        },
+        tooltip: 'Add border to table'
+    };
+
+    var increaseBorderButton = {
+        name: 'increaseBorder',
+        icon: 'plus',
+        exec: function (editor) {
+            var current = editor.selection.current();
+            if (current) {
+                var table = current.closest('table');
+                if (table) {
+                    var currentBorderWidth = parseInt(table.style.border.split(' ')[0]);
+                    table.style.border = (currentBorderWidth + 1) + 'px solid black';
+                    var cells = table.querySelectorAll('td, th');
+                    for (var i = 0; i < cells.length; i++) {
+                        cells[i].style.border = (currentBorderWidth + 1) + 'px solid black';
+                    }
+                }
+            }
+        },
+        tooltip: 'Increase border size'
+    };
+
+    var decreaseBorderButton = {
+        name: '-',
+        icon: '-',
+        exec: function (editor) {
+            var current = editor.selection.current();
+            if (current) {
+                var table = current.closest('table');
+                if (table) {
+                    var currentBorderWidth = parseInt(table.style.border.split(' ')[0]);
+                    if (currentBorderWidth > 1) {
+                        table.style.border = (currentBorderWidth - 1) + 'px solid black';
+                        var cells = table.querySelectorAll('td, th');
+                        for (var i = 0; i < cells.length; i++) {
+                            cells[i].style.border = (currentBorderWidth - 1) + 'px solid black';
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: 'Decrease border size'
+    };
+
+    buttons.splice(10, 0, addBorderButton, increaseBorderButton, decreaseBorderButton);
+
     var editor = new Jodit('#editor', {
         "uploader": {
             "insertImageAsBase64URI": true
@@ -56,6 +131,7 @@
         minHeight: 400,
         width: 1000,
         defaultMode: Jodit.MODE_WYSIWYG,
+        buttons: buttons
     });
 
     function submitForm(event) {
@@ -64,8 +140,8 @@
 
         var image = document.querySelector("input[name='image']").files[0];
         var title = document.querySelector("input[name='title']").value;
-        var date = document.querySelector("input[name='date']").value;
-        var author = document.querySelector("input[name='author']").value;
+        var date = "";
+        var author = "";
 
         // if (!image || !title || !date || !author || !htmlContent) {
         //     alert('Bütün alanları doldurun');

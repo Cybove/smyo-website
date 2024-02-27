@@ -127,30 +127,59 @@ pub fn delete_announcement(id: i32) -> Result<()> {
     Ok(())
 }
 
-pub fn contact_message(name: &str, email: &str, message: &str) -> Result<()> {
+pub fn contact_message(name: &str, email: &str, message: &str, ip_address: &str) -> Result<()> {
     let conn = establish_connection()?;
 
     conn.execute(
-        "INSERT INTO messages (name, email, message) VALUES (?1, ?2, ?3)",
-        &[&name, &email, &message],
+        "INSERT INTO messages (name, email, message, ip_address) VALUES (?1, ?2, ?3, ?4)",
+        &[&name, &email, &message, &ip_address],
     )?;
 
     Ok(())
 }
 
-pub fn authenticate_user(username: &str, password: &str) -> Result<bool, rusqlite::Error> {
+pub fn get_messages() -> Result<Vec<(String, String, String, String)>, rusqlite::Error> {
     let conn = establish_connection()?;
 
-    let mut stmt = conn.prepare("SELECT password FROM users WHERE username = ?1")?;
-    let mut user_iter = stmt.query_map(&[username], |row| {
-        let hashed_password: String = row.get(0)?;
-        let is_password_match = verify(password, &hashed_password).unwrap_or(false);
-        Ok(is_password_match)
+    let mut stmt = conn.prepare("SELECT name, email, message, ip_address FROM messages")?;
+    let message_iter = stmt.query_map([], |row| {
+        let name: String = row.get(0)?;
+        let email: String = row.get(1)?;
+        let message: String = row.get(2)?;
+        let ip_address: String = row.get(3)?;
+        Ok((name, email, message, ip_address))
     })?;
 
-    let is_authenticated = user_iter.any(|result| result.unwrap_or(false));
+    let mut messages = Vec::new();
+    for message in message_iter {
+        messages.push(message?);
+    }
 
-    Ok(is_authenticated)
+    Ok(messages)
+}
+
+pub fn authenticate_user(
+    username: &str,
+    password: &str,
+) -> Result<(bool, Option<String>), rusqlite::Error> {
+    let conn = establish_connection()?;
+
+    let mut stmt = conn.prepare("SELECT password, name FROM users WHERE username = ?1")?;
+    let mut user_iter = stmt.query_map(&[username], |row| {
+        let hashed_password: String = row.get(0)?;
+        let name: String = row.get(1)?;
+        let is_password_match = verify(password, &hashed_password).unwrap_or(false);
+        Ok((is_password_match, name))
+    })?;
+
+    let user = user_iter
+        .filter_map(|result| match result {
+            Ok((true, name)) => Some(name),
+            _ => None,
+        })
+        .next();
+
+    Ok((user.is_some(), user))
 }
 
 pub fn get_users() -> Result<Vec<String>, rusqlite::Error> {

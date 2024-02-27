@@ -19,7 +19,12 @@ pub struct FormData {
 pub async fn post_handler(req: HttpRequest, form: web::Form<FormData>) -> Result<HttpResponse> {
     let form_data = form.into_inner();
 
-    match contact_message(&form_data.name, &form_data.email, &form_data.message) {
+    let ip_address = match req.peer_addr() {
+        Some(addr) => addr.ip().to_string(),
+        None => String::from("Unknown"),
+    };
+
+    match contact_message(&form_data.name, &form_data.email, &form_data.message, &ip_address) {
         Ok(_) => Ok(HttpResponse::Ok()
             .content_type("text/html")
             .body(format!(

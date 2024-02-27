@@ -79,13 +79,23 @@ pub async fn handler(_req: HttpRequest) -> Result<HttpResponse> {
 pub async fn login_handler(form: web::Form<LoginForm>, mut session: Session) -> impl Responder {
     let login_form = form.into_inner();
 
-    if db::authenticate_user(&login_form.username, &login_form.password).unwrap() {
-        match session.insert("user_id", login_form.username) {
-            Ok(_) => (),
-            Err(e) => {
-                return HttpResponse::InternalServerError()
-                    .body(format!("Failed to set session: {}", e))
+    match db::authenticate_user(&login_form.username, &login_form.password) {
+        Ok((is_authenticated, name)) => {
+            if is_authenticated {
+                match session.insert("user_id", login_form.username) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        return HttpResponse::InternalServerError()
+                            .body(format!("Failed to set session: {}", e))
+                    }
+                }
+                if let Some(name) = name {
+                    session.insert("user_name", name).unwrap();
+                }
             }
+        }
+        Err(_) => {
+            return HttpResponse::InternalServerError().body("Authentication failed");
         }
     }
 
@@ -178,7 +188,10 @@ pub async fn admin_announcements_handler(
     Ok(HttpResponse::Ok().content_type("text/html").body(content))
 }
 
-pub async fn add_announcement_handler(mut payload: Multipart) -> Result<HttpResponse, Error> {
+pub async fn add_announcement_handler(
+    mut payload: Multipart,
+    session: Session,
+) -> Result<HttpResponse, Error> {
     let mut image: Option<Bytes> = None;
     let mut title: Option<String> = None;
     let mut content: Option<String> = None;
@@ -186,7 +199,6 @@ pub async fn add_announcement_handler(mut payload: Multipart) -> Result<HttpResp
     let mut author: Option<String> = None;
     let mut image_path: Option<String> = None;
 
-    // iterate over multipart stream
     while let Ok(Some(mut field)) = payload.try_next().await {
         let content_disposition = field.content_disposition().clone();
         let name = content_disposition.get_name().unwrap();
@@ -229,21 +241,20 @@ pub async fn add_announcement_handler(mut payload: Multipart) -> Result<HttpResp
                 }
                 content = Some(String::from_utf8(bytes.to_vec()).unwrap());
             }
-            "date" => {
-                let mut bytes = BytesMut::new();
-                while let Some(chunk) = field.next().await {
-                    let data = chunk.unwrap();
-                    bytes.extend_from_slice(&data);
-                }
-                date = Some(String::from_utf8(bytes.to_vec()).unwrap());
-            }
             "author" => {
-                let mut bytes = BytesMut::new();
-                while let Some(chunk) = field.next().await {
-                    let data = chunk.unwrap();
-                    bytes.extend_from_slice(&data);
+                match session.get::<String>("user_id") {
+                    Ok(user_id_option) => {
+                        if let Some(username) = user_id_option {
+                            author = Some(username);
+                        }
+                    }
+                    Err(_) => {
+                        // Handle case where getting user from session failed
+                    }
                 }
-                author = Some(String::from_utf8(bytes.to_vec()).unwrap());
+            }
+            "date" => {
+                date = Some(chrono::Local::now().format("%d-%m-%Y").to_string());
             }
             _ => (),
         }
@@ -307,7 +318,10 @@ pub async fn edit_announcement_form_handler(
     }
 }
 
-pub async fn edit_announcement_handler(mut payload: Multipart) -> Result<HttpResponse, Error> {
+pub async fn edit_announcement_handler(
+    mut payload: Multipart,
+    session: Session,
+) -> Result<HttpResponse, Error> {
     let mut id: Option<i32> = None;
     let mut image: Option<Bytes> = None;
     let mut title: Option<String> = None;
@@ -369,20 +383,19 @@ pub async fn edit_announcement_handler(mut payload: Multipart) -> Result<HttpRes
                 content = Some(String::from_utf8(bytes.to_vec()).unwrap());
             }
             "author" => {
-                let mut bytes = BytesMut::new();
-                while let Some(chunk) = field.next().await {
-                    let data = chunk.unwrap();
-                    bytes.extend_from_slice(&data);
+                match session.get::<String>("user_id") {
+                    Ok(user_id_option) => {
+                        if let Some(username) = user_id_option {
+                            author = Some(username);
+                        }
+                    }
+                    Err(_) => {
+                        // Handle case where getting user from session failed
+                    }
                 }
-                author = Some(String::from_utf8(bytes.to_vec()).unwrap());
             }
             "date" => {
-                let mut bytes = BytesMut::new();
-                while let Some(chunk) = field.next().await {
-                    let data = chunk.unwrap();
-                    bytes.extend_from_slice(&data);
-                }
-                date = Some(String::from_utf8(bytes.to_vec()).unwrap());
+                date = Some(chrono::Local::now().format("%d-%m-%Y").to_string());
             }
             _ => (),
         }
@@ -569,3 +582,61 @@ pub async fn get_user_list_handler() -> Result<HttpResponse, actix_web::Error> {
 
     Ok(HttpResponse::Ok().content_type("text/html").body(rendered))
 }
+
+pub async fn admin_inbox_handler() -> Result<HttpResponse, actix_web::Error> {
+    let path: PathBuf = "../public/pages/messages.html".parse().unwrap();
+    let content = tokio::fs::read_to_string(path).await?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(content))
+}
+
+pub async fn get_messages_handler() -> Result<HttpResponse, actix_web::Error> {
+    let messages = db::get_messages()
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    let message_rows = messages
+        .iter()
+        .map(|message| {
+            format!(
+                "<tr class=\"bg-white border-b dark:bg-gray-800 dark:border-gray-700\">
+                    <th scope=\"row\" class=\"px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white\">{}</th>
+                    <td class=\"px-6 py-4\">{}</td>
+                    <td class=\"px-6 py-4\">{}</td>
+                    <td class=\"px-6 py-4\">{}</td>
+                </tr>",
+                message.0, message.1, message.2, message.3
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("");
+
+    let table = format!(
+        "
+        <div class=\"w-1/2 mx-auto mt-10 justify-center items-center text-center\">
+            <div class=\"relative overflow-x-auto\">
+                <table class=\"w-full text-sm text-center rtl:text-right text-gray-500 dark:text-gray-400\">
+                    <thead class=\"text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400\">
+                        <tr>
+                            <th scope=\"col\" class=\"px-6 py-3\">İsim</th>
+                            <th scope=\"col\" class=\"px-6 py-3\">Email</th>
+                            <th scope=\"col\" class=\"px-6 py-3\">Mesaj</th>
+                            <th scope=\"col\" class=\"px-6 py-3\">Ip</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {}
+                    </tbody>
+                </table>
+            </div>
+        </div>",
+        message_rows
+    );
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(table))
+}
+
+pub async fn admin_gallery_handler() -> Result<HttpResponse, actix_web::Error> {
+    let path: PathBuf = "../public/pages/gallery.html".parse().unwrap();
+    let content = tokio::fs::read_to_string(path).await?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(content))
+}
+
