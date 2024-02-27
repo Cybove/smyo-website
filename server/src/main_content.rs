@@ -93,14 +93,16 @@ pub async fn announcements_handler(
 
     response.push_str("</div>");
 
-response.push_str("<div class='flex justify-center mt-4'>");
+response.push_str("<div class='flex justify-center mt-8'>");
 
 if page > 1 {
     let prev_page = page - 1;
     response.push_str(&format!(
-        "<button class='px-4 py-2 text-black bg-gray-100 rounded hover:bg-gray-500 mr-8' hx-get='/announcements/{}' hx-boost='true' hx-target='#announcement-container'><svg class='w-6 h-6 me-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
+        "<button class='flex items-center justify-center px-3 h-8 ms-3 text-lg font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-300 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' hx-get='/announcements/{}' hx-boost='true' hx-target='#announcement-container'>
+        <svg class='w-5 h-5 me-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
         <path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 5H1m0 0 4 4M1 5l4-4'/>
         </svg>
+        Önceki Sayfa
         </button>",
         prev_page
     ));
@@ -109,7 +111,9 @@ if page > 1 {
 if page * 3 < total_announcements {
     let next_page = page + 1;
     response.push_str(&format!(
-        "<button class='px-4 py-2 text-black bg-gray-100 rounded hover:bg-gray-500 ml-8' hx-get='/announcements/{}' hx-boost='true' hx-target='#announcement-container'><svg class='w-6 h-6 ms-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
+        "<button class='flex items-center justify-center px-3 h-8 ms-3 text-lg font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-300 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' hx-get='/announcements/{}' hx-boost='true' hx-target='#announcement-container'>
+        Sonraki Sayfa
+        <svg class='w-5 h-5 ms-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
         <path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5h12m0 0L9 1m4 4L9 9'/>
         </svg>
         </button>",
@@ -153,7 +157,7 @@ pub async fn announcement_detail_handler(req: HttpRequest) -> Result<HttpRespons
                 </div>
 
                 <div class=\"mb-12 w-1/2 p-4 mx-auto justify-center items-center text-center bg-gray-300 border-2 border-gray-300 rounded-lg shadow-lg jodit-wysiwyg\">
-                    <div class=\"text-black py-0 text-2xl leading-8\">
+                    <div class=\"text-black pb-8 text-2xl leading-8\">
                         {}
                     </div>
                 </div>

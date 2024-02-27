@@ -1318,10 +1318,6 @@ input:checked + .toggle-bg {
   height: 2.25rem;
 }
 
-.h-\[768px\] {
-  height: 768px;
-}
-
 .h-full {
   height: 100%;
 }
@@ -1374,6 +1370,10 @@ input:checked + .toggle-bg {
   width: 1.25rem;
 }
 
+.w-5\/6 {
+  width: 83.333333%;
+}
+
 .w-6 {
   width: 1.5rem;
 }
@@ -1384,10 +1384,6 @@ input:checked + .toggle-bg {
 
 .w-8 {
   width: 2rem;
-}
-
-.w-\[1920x\] {
-  width: 1920x;
 }
 
 .w-full {
@@ -1615,10 +1611,6 @@ input:checked + .toggle-bg {
 
 .rounded-lg {
   border-radius: 0.5rem;
-}
-
-.rounded-xl {
-  border-radius: 0.75rem;
 }
 
 .rounded-e-lg {

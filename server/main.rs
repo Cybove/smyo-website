@@ -14,7 +14,7 @@ async fn main() -> Result<()> {
     // env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     let secret_key = Key::generate();
-    let ip_address = "192.168.1.6";
+    let ip_address = "localhost";
     let port = "1907";
 
     HttpServer::new(move || {
