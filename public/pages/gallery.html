@@ -21,7 +21,7 @@
         </div>
         <form id='form' hx-encoding='multipart/form-data' hx-post='/admin/image/add' hx-swap="none"
             class='flex flex-col items-center justify-center'>
-            <input type='file' name='file'>
+            <input type='file' name='file' multiple>
             <button
                 class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4'>
                 Upload
@@ -105,6 +105,8 @@
             const images = JSON.parse(event.detail.xhr.responseText);
             renderImageList(images);
             updatePaginationAfterDelete();
+            const input = document.querySelector('input[type="file"]');
+            input.value = '';
         }
     }
 

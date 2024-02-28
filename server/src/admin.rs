@@ -716,29 +716,23 @@ pub async fn admin_upload_handler(
     mut payload: Multipart,
     web::Query(pagination): web::Query<Pagination>,
 ) -> Result<HttpResponse, Error> {
-    match payload.try_next().await {
-        Ok(Some(mut field)) => {
-            let mut bytes = BytesMut::new();
+    while let Ok(Some(mut field)) = payload.try_next().await {
+        let mut bytes = BytesMut::new();
 
-            while let Some(chunk) = field.next().await {
-                let data = chunk.unwrap();
-                bytes.extend_from_slice(&data);
-            }
-
-            let image_data = bytes.freeze();
-            let img = image::load_from_memory(&image_data).unwrap();
-            let resized = img.resize_exact(1344, 520, image::imageops::FilterType::Nearest);
-            let image_path = format!("../public/assets/slider/{}.jpg", Uuid::new_v4().to_string());
-            resized.save(&image_path).unwrap();
-            let image_files = get_image_files().await?;
-            let paginated_images = paginate(image_files, pagination.clone());
-
-            Ok(HttpResponse::Ok().json(paginated_images))
+        while let Some(chunk) = field.next().await {
+            let data = chunk.unwrap();
+            bytes.extend_from_slice(&data);
         }
-        Ok(None) => Ok(HttpResponse::BadRequest().finish()),
-        Err(e) => {
-            println!("Failed to get field: {}", e);
-            Ok(HttpResponse::InternalServerError().finish())
-        }
+
+        let image_data = bytes.freeze();
+        let img = image::load_from_memory(&image_data).unwrap();
+        let resized = img.resize_exact(1344, 520, image::imageops::FilterType::Nearest);
+        let image_path = format!("../public/assets/slider/{}.jpg", Uuid::new_v4().to_string());
+        resized.save(&image_path).unwrap();
     }
+
+    let image_files = get_image_files().await?;
+    let paginated_images = paginate(image_files, pagination.clone());
+
+    Ok(HttpResponse::Ok().json(paginated_images))
 }
