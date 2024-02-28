@@ -14,7 +14,7 @@ async fn main() -> Result<()> {
     // env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     let secret_key = Key::generate();
-    let ip_address = "localhost";
+    let ip_address = "192.168.1.6";
     let port = "1907";
 
     HttpServer::new(move || {
@@ -110,9 +110,28 @@ async fn main() -> Result<()> {
                 web::resource("/admin/user/delete/{username}")
                     .route(web::delete().to(src::admin::delete_user_handler)),
             )
+            .service(
+                web::resource("/admin/image/list")
+                    .route(web::get().to(src::admin::admin_image_handler)),
+            )
+            .service(
+                web::resource("/admin/image/count")
+                    .route(web::get().to(src::admin::count_images_handler)),
+            )
+            .service(
+                web::resource("/admin/image/delete/{image}")
+                    .route(web::delete().to(src::admin::delete_image_handler)),
+            )
+            .service(
+                web::resource("/admin/image/add")
+                    .route(web::post().to(src::admin::admin_upload_handler)),
+            )
             .service(Files::new("/node_modules", "../node_modules"))
             .service(Files::new("/pages", "../public/pages").index_file("index.html"))
-            .service(Files::new("/public/assets/slider", "../public/assets/slider"))
+            .service(Files::new(
+                "/public/assets/slider",
+                "../public/assets/slider",
+            ))
             .service(Files::new("/", "../public").index_file("index.html"))
     })
     .bind(format!("{}:{}", ip_address, port))?

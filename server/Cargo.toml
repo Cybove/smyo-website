@@ -18,12 +18,14 @@ chrono = "0.4.34"
 cls = "0.1.0"
 env_logger = "0.11.2"
 futures = "0.3.30"
+image = "0.24.9"
 jsonwebtoken = "9.2.0"
 rand = "0.8.5"
 rusqlite = { version = "0.30.0", features = ["bundled"] }
 sanitize-filename = "0.5.0"
 serde = "1.0.193"
 serde_derive = "1.0.193"
+serde_json = "1.0.114"
 tokio = { version = "1.35.0", features = ["full"] }
 uuid = { version = "1.6.1", features = ["v4"] }
 

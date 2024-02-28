@@ -8,12 +8,17 @@ use actix_web::web::Query;
 use actix_web::web::{self, Bytes};
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, Result};
 use futures::{StreamExt, TryFutureExt, TryStreamExt};
+use image::imageops::resize;
+use image::imageops::FilterType;
+use image::GenericImageView;
 use serde_derive::Deserialize;
 use std::ffi::OsStr;
 use std::fs;
 use std::io::Write;
 use std::path::{self, Path, PathBuf};
 use std::sync::Arc;
+use tokio::fs::File;
+use tokio::io::{AsyncWriteExt, BufWriter};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -64,10 +69,10 @@ pub struct DeleteAnnouncementForm {
     pub id: i32,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Pagination {
-    page: Option<i32>,
-    page_size: Option<i32>,
+    page: Option<usize>,
+    page_size: Option<usize>,
 }
 
 pub async fn handler(_req: HttpRequest) -> Result<HttpResponse> {
@@ -144,8 +149,8 @@ pub async fn admin_user_handler(_req: HttpRequest) -> Result<HttpResponse> {
 pub async fn admin_announcements_handler(
     Query(pagination): Query<Pagination>,
 ) -> Result<HttpResponse> {
-    let page: i32 = pagination.page.unwrap_or(1);
-    let page_size: i32 = pagination.page_size.unwrap_or(3);
+    let page: i32 = pagination.page.unwrap_or(1).try_into().unwrap();
+    let page_size: i32 = pagination.page_size.unwrap_or(3).try_into().unwrap();
 
     let (announcements, total_announcements) = db::get_announcements(page, page_size)
         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
@@ -640,3 +645,100 @@ pub async fn admin_gallery_handler() -> Result<HttpResponse, actix_web::Error> {
     Ok(HttpResponse::Ok().content_type("text/html").body(content))
 }
 
+async fn get_image_files() -> Result<Vec<String>, std::io::Error> {
+    let image_folder = "../public/assets/slider";
+    let mut entries = fs::read_dir(image_folder)?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, std::io::Error>>()?;
+
+    entries.sort_by_key(|path| {
+        fs::metadata(&path)
+            .and_then(|meta| meta.modified())
+            .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+    });
+
+    let image_files: Vec<String> = entries
+        .iter()
+        .filter(|path| path.is_file())
+        .filter_map(|path| path.file_name())
+        .filter_map(|name| name.to_str().map(String::from))
+        .collect();
+
+    Ok(image_files)
+}
+
+fn paginate(image_files: Vec<String>, pagination: Pagination) -> Vec<String> {
+    let page: usize = pagination.page.unwrap_or(1);
+    let page_size: usize = pagination.page_size.unwrap_or(6);
+
+    let start = (page - 1) * page_size;
+    let end = std::cmp::min(start + page_size, image_files.len());
+
+    image_files.get(start..end).unwrap_or(&[]).to_vec()
+}
+
+pub async fn admin_image_handler(
+    web::Query(pagination): web::Query<Pagination>,
+) -> Result<HttpResponse, Error> {
+    let image_files = get_image_files().await?;
+    let paginated_images = paginate(image_files, pagination);
+
+    Ok(HttpResponse::Ok().json(paginated_images))
+}
+
+pub async fn delete_image_handler(
+    info: web::Path<(String,)>,
+    web::Query(pagination): web::Query<Pagination>,
+) -> Result<HttpResponse, Error> {
+    let image_name = &info.0;
+    let image_path = format!("../public/assets/slider/{}", image_name);
+
+    match fs::remove_file(&image_path) {
+        Ok(_) => {
+            let image_files = get_image_files().await?;
+            let paginated_images = paginate(image_files, pagination.clone());
+
+            Ok(HttpResponse::Ok().json(paginated_images))
+        }
+        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
+    }
+}
+
+pub async fn count_images_handler() -> Result<HttpResponse, Error> {
+    let image_files = get_image_files().await?;
+
+    let total_images = image_files.len();
+
+    Ok(HttpResponse::Ok().json(total_images))
+}
+
+pub async fn admin_upload_handler(
+    mut payload: Multipart,
+    web::Query(pagination): web::Query<Pagination>,
+) -> Result<HttpResponse, Error> {
+    match payload.try_next().await {
+        Ok(Some(mut field)) => {
+            let mut bytes = BytesMut::new();
+
+            while let Some(chunk) = field.next().await {
+                let data = chunk.unwrap();
+                bytes.extend_from_slice(&data);
+            }
+
+            let image_data = bytes.freeze();
+            let img = image::load_from_memory(&image_data).unwrap();
+            let resized = img.resize_exact(1344, 520, image::imageops::FilterType::Nearest);
+            let image_path = format!("../public/assets/slider/{}.jpg", Uuid::new_v4().to_string());
+            resized.save(&image_path).unwrap();
+            let image_files = get_image_files().await?;
+            let paginated_images = paginate(image_files, pagination.clone());
+
+            Ok(HttpResponse::Ok().json(paginated_images))
+        }
+        Ok(None) => Ok(HttpResponse::BadRequest().finish()),
+        Err(e) => {
+            println!("Failed to get field: {}", e);
+            Ok(HttpResponse::InternalServerError().finish())
+        }
+    }
+}

@@ -1,2 +1,153 @@
-<div hx-get="/admin/images" hx-trigger="load" hx-swap="outerHTML">
+<div class="flex-row w-9/12 mx-auto mt-6 justify-center items-center text-center">
+    <div x-data="{ open: false, imgSrc: '' }">
+        <div x-show="open" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+            aria-modal="true">
+            <div class="fixed inset-0"></div>
+            <div class="flex items-center justify-center min-h-screen backdrop-filter backdrop-blur">
+                <div class="bg-gray-500 rounded-lg w-4/6">
+                    <div class="modal-close lg right-0 cursor-pointer flex flex-col items-center mt-4 mr-4 text-white text-sm z-50"
+                        @click="open = false">
+                        <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                            viewBox="0 0 18 18">
+                            <path
+                                d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z">
+                            </path>
+                        </svg>
+                        <span class="text-black text-lg">(Close)</span>
+                    </div>
+                    <img :src="imgSrc" class="w-full h-auto">
+                </div>
+            </div>
+        </div>
+        <form id='form' hx-encoding='multipart/form-data' hx-post='/admin/image/add' hx-swap="none"
+            class='flex flex-col items-center justify-center'>
+            <input type='file' name='file'>
+            <button
+                class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4'>
+                Upload
+            </button>
+
+            <hr class="w-full my-4 border-gray-300">
+        </form>
+
+        <div id="image-list" hx-get="/admin/image/list?page=1&page_size=9" hx-trigger="load">
+        </div>
+
+        <div id="pagination" class="mb-10" hx-get="/admin/image/count" hx-trigger="load click">
+
+        </div>
+        <div id="image-count" hx-get="/admin/image/count" hx-trigger="load" style="display: none;"></div>
+
+    </div>
 </div>
+
+<script>
+    const PAGE_SIZE = 9;
+
+    document.body.addEventListener('htmx:configRequest', handleConfigRequest);
+    document.body.addEventListener('htmx:afterOnLoad', handleAfterOnLoad);
+    document.body.addEventListener('htmx:afterSwap', handleAfterSwap);
+
+    function handleConfigRequest(event) {
+        event.detail.headers['HX-Response'] = 'json';
+    }
+
+    function fetchImageCountAndRenderPagination() {
+        fetch('/admin/image/count', {
+            headers: {
+                'HX-Request': 'true',
+                'HX-Trigger': 'load'
+            }
+        })
+            .then(response => response.json())
+            .then(count => renderPagination(Math.ceil(count / PAGE_SIZE)));
+    }
+
+    function renderPagination(pages) {
+        const paginationDiv = document.getElementById('pagination');
+        let html = '';
+
+        for (let i = 1; i <= pages; i++) {
+            html += createPageButton(i);
+        }
+
+        paginationDiv.innerHTML = html;
+        setPaginationEventListeners(pages);
+    }
+
+    function createPageButton(pageNumber) {
+        return `
+        <button id="page-${pageNumber}" hx-get="/admin/image/list?page=${pageNumber}&page_size=${PAGE_SIZE}" 
+            hx-trigger="click" hx-swap="innerHTML" hx-target="#image-list" 
+            class="font-bold text-xl px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">${pageNumber}</button>
+    `;
+    }
+
+    function setPaginationEventListeners(pages) {
+        for (let i = 1; i <= pages; i++) {
+            const pageButton = document.getElementById(`page-${i}`);
+            htmx.process(pageButton);
+
+            if (i === 1) {
+                pageButton.classList.add('active');
+            }
+
+            pageButton.addEventListener('click', function () {
+                const paginationButtons = document.querySelectorAll('#pagination button');
+                paginationButtons.forEach(button => button.classList.remove('active'));
+                this.classList.add('active');
+            });
+        }
+    }
+
+    function handleAfterOnLoad(event) {
+        if (event.detail.elt.id === 'form' || event.target.id === 'img') {
+            const images = JSON.parse(event.detail.xhr.responseText);
+            renderImageList(images);
+            updatePaginationAfterDelete();
+        }
+    }
+
+    function handleAfterSwap(event) {
+        if (event.target.id === 'image-list') {
+            const images = JSON.parse(event.detail.xhr.responseText);
+            renderImageList(images.slice(0, PAGE_SIZE));
+        }
+
+        if (event.target.id === 'pagination') {
+            const count = JSON.parse(event.detail.xhr.responseText);
+            const pages = Math.ceil(count / PAGE_SIZE);
+            renderPagination(pages);
+        }
+    }
+
+    function renderImageList(images) {
+        const imageList = document.getElementById('image-list');
+        const html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4 p-4 m-4">' +
+            images.map(image => createImageHTML(image)).join('') +
+            '</div>';
+
+        imageList.innerHTML = html;
+        htmx.process(imageList);
+    }
+
+    function createImageHTML(image) {
+        return `
+        <div id="img" class="relative">
+            <img @click="open = true; imgSrc = '/assets/slider/${image}'" class="h-auto max-w-full rounded-lg" src="/assets/slider/${image}" alt="">
+            <button hx-delete="/admin/image/delete/${image}" hx-confirm="Are you sure you want to delete this image?" hx-swap="outerHTML" hx-swap-oob="true" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1" style="transform: translate(50%, -50%);">X</button>
+        </div>
+    `;
+    }
+
+    function updatePaginationAfterDelete() {
+        const activePageButton = document.querySelector('#pagination button.active');
+        if (activePageButton) {
+            activePageButton.click();
+        }
+        fetchImageCountAndRenderPagination();
+    }
+
+    fetchImageCountAndRenderPagination();
+
+</script>
