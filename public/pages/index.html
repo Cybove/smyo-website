@@ -41,22 +41,10 @@
                             hx-trigger="click"
                             class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Anasayfa</a>
                     </li>
-                    <li>
-                        <!-- Duyurular link -->
-                        <a id="link-duyurular" href="#duyurular" hx-get="/duyurular" hx-target="#main-container"
-                            hx-push-url="#duyurular" hx-trigger="click"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Duyurular</a>
-                    </li>
-                    <li>
-                        <!-- İletişim link -->
-                        <a id="link-contact" href="#contact" hx-get="/contact" hx-target="#main-container"
-                            hx-push-url="#contact" hx-trigger="click"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">İletişim</a>
-                    </li>
 
                     <li>
                         <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar"
-                            class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">Personel
+                            class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">İçerik
                             <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 10 6">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -68,18 +56,39 @@
                             <ul class="py-2 text-sm text-gray-700 dark:text-gray-400"
                                 aria-labelledby="dropdownLargeButton">
                                 <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Akademik
-                                        Personel</a>
+                                    <a id="link-duyurular" href="#duyurular" hx-get="/duyurular"
+                                        hx-target="#main-container" hx-push-url="#duyurular" hx-trigger="click"
+                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Duyurular</a>
                                 </li>
                                 <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">İdari
-                                        Personel</a>
+                                    <a id="link-makaleler" href="#makaleler" hx-get="/makaleler"
+                                        hx-target="#main-container" hx-push-url="#makaleler" hx-trigger="click"
+                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Makaleler</a>
+                                </li>
+                                <li>
+                                    <a id="link-dokumanlar" href="#dokumanlar" hx-get="/dokumanlar"
+                                        hx-target="#main-container" hx-push-url="#dokumanlar" hx-trigger="click"
+                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dokümanlar</a>
                                 </li>
                             </ul>
                         </div>
                     </li>
+
+                    <li>
+                        <!-- İletişim link -->
+                        <a id="link-contact" href="#contact" hx-get="/contact" hx-target="#main-container"
+                            hx-push-url="#contact" hx-trigger="click"
+                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">İletişim</a>
+                    </li>
+
+                    <li>
+                        <!-- Personel -->
+                        <a id="link-personel" href="#personel" hx-get="/personel" hx-target="#main-container"
+                            hx-push-url="#personel" hx-trigger="click"
+                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Personel</a>
+                    </li>
+
+
                 </ul>
             </div>
         </div>
@@ -90,7 +99,7 @@
     </div>
 
     <footer class="bg-white rounded-lg shadow m-4 dark:bg-gray-800">
-        <div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
+        <div class="w-full mx-auto max-w-screen-xl w- p-4 md:flex md:items-center md:justify-between">
             <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2023 <span
                     class="hover:underline">STBMYO | Cumhuriyet Üniversitesi Sivas TBMYO Bilgisayar Teknolojileri
                     Bölümü</span>.
@@ -136,7 +145,10 @@
             var hash = window.location.hash.substr(1);
             hash = hash == "" ? "Anasayfa" : hash.charAt(0).toUpperCase() + hash.slice(1);
             hash = hash == "Duyurular" ? "Duyurular" : hash;
+            hash = hash == "Makaleler" ? "Makaleler" : hash;
             hash = hash == "Contact" ? "İletişim" : hash;
+            hash = hash == "Personel" ? "Personel" : hash;
+            hash = hash == "Dokumanlar" ? "Dokümanlar" : hash;
             document.title = `${hash} | CÜ Sivas TBMYO Bilgisayar Teknolojileri Bölümü`;
         }
 
@@ -157,57 +169,6 @@
             changeLinkColor();
             updateTitle();
         });
-
-
-        document.body.addEventListener('htmx:afterSwap', function (event) {
-            var effect = ['fade', 'cube', 'coverflow', 'flip', 'cards'];
-            var randomEffect = effect[Math.floor(Math.random() * effect.length)];
-            if (event.target.classList.contains('swiper-wrapper')) {
-                var mySwiper = new Swiper('.mySwiper', {
-                    slidesPerView: 1,
-                    spaceBetween: 30,
-                    loop: true,
-                    autoplay: {
-                        delay: 6000,
-                    },
-                    cubeEffect: {
-                        shadow: true,
-                        slideShadows: true,
-                        shadowOffset: 20,
-                        shadowScale: 0.94,
-                    },
-                    fadeEffect: {
-                        crossFade: true
-                    },
-                    coverflowEffect: {
-                        rotate: 50,
-                        stretch: 0,
-                        depth: 100,
-                        modifier: 1,
-                        slideShadows: true,
-                    },
-                    flipEffect: {
-                        slideShadows: true,
-                        limitRotation: true,
-                    },
-                    creativeEffect: {
-                        prev: '.swiper-button-prev',
-                        next: '.swiper-button-next',
-                    },
-                    cardsEffect: {
-                        slideShadows: true,
-                        fadeEffect: true
-                    },
-                    effect: randomEffect,
-                    navigation: {
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev',
-                    },
-                });
-            }
-        });
-
-
 
     </script>
 

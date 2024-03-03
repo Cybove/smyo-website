@@ -40,16 +40,28 @@ async fn main() -> Result<()> {
             .route("/slider", web::get().to(src::slider::handler))
             .route(
                 "/announcements/{page}",
-                web::get().to(src::main_content::announcements_handler),
+                web::get().to(src::announcements::announcements_handler),
             )
             .route(
                 "/announcement/{id}",
-                web::get().to(src::main_content::announcement_detail_handler),
+                web::get().to(src::announcements::announcement_detail_handler),
+            )
+            .route(
+                "/articles/{page}",
+                web::get().to(src::articles::articles_handler),
+            )
+            .route(
+                "/article/{id}",
+                web::get().to(src::articles::article_detail_handler),
             )
             .route("/admin/user", web::get().to(src::admin::admin_user_handler))
             .route(
                 "/admin/announcements",
                 web::get().to(src::admin::admin_announcements_handler),
+            )
+            .route(
+                "/admin/articles",
+                web::get().to(src::admin::admin_articles_handler),
             )
             .route(
                 "/admin/inbox",
@@ -65,7 +77,14 @@ async fn main() -> Result<()> {
             )
             .route("/contact", web::get().to(src::contact::handler))
             .route("/contact", web::post().to(src::contact::post_handler))
-            .route("/duyurular", web::get().to(src::duyurular::handler))
+            .route("/duyurular", web::get().to(src::announcements::handler))
+            .route("/makaleler", web::get().to(src::articles::handler))
+            .route("/dokumanlar", web::get().to(src::docs::handler))
+            .route("/personel", web::get().to(src::personel::handler))
+            .service(
+                web::resource("/dokumanlar/{filename}")
+                    .route(web::get().to(src::docs::doc_handler)),
+            )
             .service(
                 web::resource("/admin/announcements/add")
                     .route(web::post().to(src::admin::add_announcement_handler)),
@@ -85,6 +104,26 @@ async fn main() -> Result<()> {
             .service(
                 web::resource("/admin/announcements/delete/{id}")
                     .route(web::post().to(src::admin::delete_announcement_handler)),
+            )
+            .service(
+                web::resource("/admin/articles/add")
+                    .route(web::post().to(src::admin::add_article_handler)),
+            )
+            .service(
+                web::resource("/admin/articles/add/form")
+                    .route(web::get().to(src::admin::add_article_form_handler)),
+            )
+            .service(
+                web::resource("/admin/article/edit/form/{id}")
+                    .route(web::get().to(src::admin::edit_article_form_handler)),
+            )
+            .service(
+                web::resource("/admin/article/edit")
+                    .route(web::post().to(src::admin::edit_article_handler)),
+            )
+            .service(
+                web::resource("/admin/articles/delete/{id}")
+                    .route(web::post().to(src::admin::delete_article_handler)),
             )
             .service(
                 web::resource("/admin/user/list")

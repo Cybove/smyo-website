@@ -34,16 +34,20 @@ module.exports = {
       'lg': '1024px',
       'xl': '1280px',
       '2xl': '1536px',
-    }
+    },
+    display: ['responsive']
   },
   variants: {
     extend: {
       borderColor: ['hover', 'focus'],
       borderWidth: ['hover', 'focus'],
       backdropBlur: ['hover', 'focus'],
+      display: ['responsive', 'group-hover', 'group-focus'],
     },
   },
   plugins: [
     require('flowbite/plugin')
   ],
+
+
 }

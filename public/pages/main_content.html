@@ -1,0 +1,67 @@
+<div class="container justify-center items-center mx-auto mt-10 mb-10">
+    <div class="swiper mySwiper xs:max-w-11/12 xs:max-h-max lg:w-[1344px] lg:h-[520px]">
+        <div class="swiper-wrapper" hx-get="/slider" hx-trigger="load" hx-swap="innerHTML">
+        </div>
+        <div
+            class="swiper-button-next bg-gray-500 text-white p-2 rounded absolute top-1/2 right-0 transform -translate-y-1/2">
+        </div>
+        <div
+            class="swiper-button-prev bg-gray-500 text-white p-2 rounded absolute top-1/2 left-0 transform -translate-y-1/2">
+        </div>
+    </div>
+</div>
+
+<style>
+    @media screen and (max-width: 768px) {
+
+        .swiper-button-next,
+        .swiper-button-prev {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        var effect = ['fade', 'cube', 'coverflow', 'flip', 'cards'];
+        var randomEffect = effect[Math.floor(Math.random() * effect.length)];
+        if (event.target.classList.contains('swiper-wrapper')) {
+            var mySwiper = new Swiper('.mySwiper', {
+                slidesPerView: 1,
+                spaceBetween: 30,
+                autoplay: {
+                    delay: 6000,
+                },
+                cubeEffect: {
+                    shadow: true,
+                    slideShadows: true,
+                    shadowOffset: 20,
+                    shadowScale: 0.94,
+                },
+                fadeEffect: {
+                    crossFade: true
+                },
+                coverflowEffect: {
+                    rotate: 50,
+                    stretch: 0,
+                    depth: 100,
+                    modifier: 1,
+                    slideShadows: true,
+                },
+                flipEffect: {
+                    slideShadows: true,
+                    limitRotation: true,
+                },
+                cardsEffect: {
+                    slideShadows: true,
+                    fadeEffect: true
+                },
+                effect: randomEffect,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+            });
+        }
+    });
+</script>

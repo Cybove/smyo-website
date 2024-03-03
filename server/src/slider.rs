@@ -18,7 +18,7 @@ pub async fn handler(req: HttpRequest) -> impl Responder {
         .collect();
     paths.sort();
     paths.shuffle(&mut rand::thread_rng());
-    let paths: Vec<String> = paths.into_iter().take(5).collect();
+    let paths: Vec<String> = paths.into_iter().take(10).collect();
 
     let slides: String = paths
         .into_iter()

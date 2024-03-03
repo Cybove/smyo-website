@@ -1,7 +1,10 @@
 pub mod admin;
+pub mod announcements;
+pub mod articles;
 pub mod contact;
 pub mod db;
-pub mod duyurular;
+pub mod docs;
 pub mod index;
 pub mod main_content;
+pub mod personel;
 pub mod slider;

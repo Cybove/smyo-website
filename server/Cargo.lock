@@ -998,12 +998,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cls"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36620a4443296d23e0a45abf00cb1e677e63693d3563a3c8a298e514d27494e5"
-
-[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2690,7 +2684,6 @@ dependencies = [
  "actix-web 4.4.0",
  "bcrypt",
  "chrono",
- "cls",
  "env_logger",
  "futures",
  "image",

@@ -69,6 +69,40 @@ pub struct DeleteAnnouncementForm {
     pub id: i32,
 }
 
+#[derive(Deserialize)]
+pub struct ArticleForm {
+    pub id: i32,
+    pub image: String,
+    pub title: String,
+    pub content: String,
+    pub date: String,
+    pub author: String,
+}
+
+#[derive(Deserialize)]
+pub struct AddArticleForm {
+    pub title: String,
+    pub content: String,
+    pub date: String,
+    pub author: String,
+    pub image_path: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EditArticleForm {
+    pub id: i32,
+    pub image_path: String,
+    pub title: String,
+    pub content: String,
+    pub date: String,
+    pub author: String,
+}
+
+#[derive(Deserialize)]
+pub struct DeleteArticleForm {
+    pub id: i32,
+}
+
 #[derive(Deserialize, Clone)]
 pub struct Pagination {
     page: Option<usize>,
@@ -138,12 +172,6 @@ pub async fn admin_dashboard_handler(session: Session) -> Result<HttpResponse> {
             "Failed to get session",
         )),
     }
-}
-
-pub async fn admin_user_handler(_req: HttpRequest) -> Result<HttpResponse> {
-    let path: PathBuf = "../public/pages/users.html".parse().unwrap();
-    let content = tokio::fs::read_to_string(path).await?;
-    Ok(HttpResponse::Ok().content_type("text/html").body(content))
 }
 
 pub async fn admin_announcements_handler(
@@ -461,6 +489,327 @@ pub async fn delete_announcement_handler(req: HttpRequest) -> Result<HttpRespons
         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
     Ok(HttpResponse::Ok().content_type("text/html").body(""))
+}
+
+pub async fn admin_articles_handler(Query(pagination): Query<Pagination>) -> Result<HttpResponse> {
+    let page: i32 = pagination.page.unwrap_or(1).try_into().unwrap();
+    let page_size: i32 = pagination.page_size.unwrap_or(3).try_into().unwrap();
+
+    let (articles, total_articles) = db::get_articles(page, page_size)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    let total_pages = (total_articles as f32 / page_size as f32).ceil() as i32;
+
+    let mut content = String::from("
+    <div class='flex justify-center'>
+        <button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded' hx-get='/admin/articles/add/form' hx-swap='innerHTML' hx-target='#dashboard-container'>           Yeni Duyuru Ekle           </button>
+    </div>
+    ");
+    for article in &articles {
+        let mut article_content =
+            tokio::fs::read_to_string("../public/pages/articles.html").await?;
+        article_content = article_content.replace("{image}", &article.image);
+        article_content = article_content.replace("{title}", &article.title);
+        article_content = article_content.replace("{date}", &article.date);
+        article_content = article_content.replace("{author}", &article.author);
+        article_content = article_content.replace("{id}", &article.id.to_string());
+        content.push_str(&article_content);
+    }
+
+    content.push_str("<div class='flex justify-center items-center mt-4 mb-4 space-x-2'>");
+    if page > 1 {
+        content.push_str(&format!(
+            "<button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' hx-get='/admin/articles?page={}&page_size={}' hx-swap='innerHTML' hx-target='#dashboard-container'>Önceki Sayfa</button>",
+            page - 1,
+            page_size
+        ));
+    }
+    if page < total_pages {
+        content.push_str(&format!(
+            "<button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' hx-get='/admin/articles?page={}&page_size={}' hx-swap='innerHTML' hx-target='#dashboard-container'>Sonraki Sayfa</button>",
+            page + 1,
+            page_size
+        ));
+    }
+    content.push_str("</div>");
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(content))
+}
+
+pub async fn add_article_handler(
+    mut payload: Multipart,
+    session: Session,
+) -> Result<HttpResponse, Error> {
+    let mut image: Option<Bytes> = None;
+    let mut title: Option<String> = None;
+    let mut content: Option<String> = None;
+    let mut date: Option<String> = None;
+    let mut author: Option<String> = None;
+    let mut image_path: Option<String> = None;
+
+    while let Ok(Some(mut field)) = payload.try_next().await {
+        let content_disposition = field.content_disposition().clone();
+        let name = content_disposition.get_name().unwrap();
+        let filename = content_disposition.get_filename().unwrap_or("unnamed");
+        let extension = Path::new(filename)
+            .extension()
+            .unwrap_or(OsStr::new(""))
+            .to_str()
+            .unwrap();
+
+        match name {
+            "image" => {
+                let mut bytes = BytesMut::new();
+                while let Some(chunk) = field.next().await {
+                    let data = chunk.unwrap();
+                    bytes.extend_from_slice(&data);
+                }
+                image = Some(bytes.freeze());
+                image_path = Some(format!(
+                    "../public/assets/image/upload/{}.{}",
+                    Uuid::new_v4().to_string(),
+                    extension
+                ));
+                let mut file = fs::File::create(&image_path.as_ref().unwrap()).unwrap();
+                file.write_all(&image.as_ref().unwrap()).unwrap(); // Use as_ref to avoid moving image
+            }
+            "title" => {
+                let mut bytes = BytesMut::new();
+                while let Some(chunk) = field.next().await {
+                    let data = chunk.unwrap();
+                    bytes.extend_from_slice(&data);
+                }
+                title = Some(String::from_utf8(bytes.to_vec()).unwrap());
+            }
+            "content" => {
+                let mut bytes = BytesMut::new();
+                while let Some(chunk) = field.next().await {
+                    let data = chunk.unwrap();
+                    bytes.extend_from_slice(&data);
+                }
+                content = Some(String::from_utf8(bytes.to_vec()).unwrap());
+            }
+            "author" => {
+                match session.get::<String>("user_id") {
+                    Ok(user_id_option) => {
+                        if let Some(username) = user_id_option {
+                            author = Some(username);
+                        }
+                    }
+                    Err(_) => {
+                        // Handle case where getting user from session failed
+                    }
+                }
+            }
+            "date" => {
+                date = Some(chrono::Local::now().format("%d-%m-%Y").to_string());
+            }
+            _ => (),
+        }
+    }
+
+    let image = image.unwrap();
+    let title = title.unwrap();
+    let content = content.unwrap();
+    let date = date.unwrap();
+    let author = author.unwrap();
+
+    let image_path = image_path.unwrap();
+
+    let db_image_path = image_path.replace("../public", "");
+
+    let mut file = fs::File::create(&image_path).unwrap();
+    file.write_all(&image).unwrap();
+
+    let form = AddArticleForm {
+        title,
+        content,
+        date,
+        author,
+        image_path: db_image_path,
+    };
+
+    match db::add_article(
+        &form.image_path,
+        &form.title,
+        &form.content,
+        &form.date,
+        &form.author,
+    ) {
+        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
+    }
+}
+
+pub async fn add_article_form_handler() -> Result<HttpResponse, actix_web::Error> {
+    let path: PathBuf = "../public/pages/add_article.html".parse().unwrap();
+    let form = tokio::fs::read_to_string(path).await?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(form))
+}
+
+pub async fn edit_article_form_handler(
+    id: web::Path<i32>,
+) -> Result<HttpResponse, actix_web::Error> {
+    match db::get_article(id.into_inner()) {
+        Ok(article) => {
+            let path: PathBuf = "../public/pages/edit_article.html".parse().unwrap();
+            let mut form = tokio::fs::read_to_string(path).await?;
+            form = form.replace("{{article.id}}", &article.id.to_string());
+            form = form.replace("{{article.image}}", &article.image);
+            form = form.replace("{{article.title}}", &article.title);
+            form = form.replace("{{article.date}}", &article.date);
+            form = form.replace("{{article.content}}", &article.content);
+            form = form.replace("{{article.author}}", &article.author);
+            Ok(HttpResponse::Ok().content_type("text/html").body(form))
+        }
+        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
+    }
+}
+
+pub async fn edit_article_handler(
+    mut payload: Multipart,
+    session: Session,
+) -> Result<HttpResponse, Error> {
+    let mut id: Option<i32> = None;
+    let mut image: Option<Bytes> = None;
+    let mut title: Option<String> = None;
+    let mut content: Option<String> = None;
+    let mut date: Option<String> = None;
+    let mut author: Option<String> = None;
+    let mut image_path: Option<String> = None;
+
+    while let Ok(Some(mut field)) = payload.try_next().await {
+        let content_disposition = field.content_disposition().clone();
+        let name = content_disposition.get_name().unwrap();
+        let filename = content_disposition.get_filename().unwrap_or("unnamed");
+
+        let extension = Path::new(filename)
+            .extension()
+            .unwrap_or(OsStr::new(""))
+            .to_str()
+            .unwrap();
+
+        match name {
+            "id" => {
+                let data = field.next().await.unwrap().unwrap();
+                match std::str::from_utf8(&data).unwrap().parse::<i32>() {
+                    Ok(parsed_id) => id = Some(parsed_id),
+                    Err(_) => {}
+                }
+            }
+            "image" => {
+                let mut bytes = BytesMut::new();
+                while let Some(chunk) = field.next().await {
+                    let data = chunk.unwrap();
+                    bytes.extend_from_slice(&data);
+                }
+                let image_data = bytes.freeze();
+
+                image = Some(image_data);
+                image_path = Some(format!(
+                    "../public/assets/image/upload/{}.{}",
+                    Uuid::new_v4().to_string(),
+                    extension
+                ));
+                let mut file = fs::File::create(&image_path.as_ref().unwrap()).unwrap();
+                file.write_all(&image.as_ref().unwrap()).unwrap(); // Use as_ref to avoid moving image
+            }
+            "title" => {
+                let mut bytes = BytesMut::new();
+                while let Some(chunk) = field.next().await {
+                    let data = chunk.unwrap();
+                    bytes.extend_from_slice(&data);
+                }
+                title = Some(String::from_utf8(bytes.to_vec()).unwrap());
+            }
+            "content" => {
+                let mut bytes = BytesMut::new();
+                while let Some(chunk) = field.next().await {
+                    let data = chunk.unwrap();
+                    bytes.extend_from_slice(&data);
+                }
+                content = Some(String::from_utf8(bytes.to_vec()).unwrap());
+            }
+            "author" => {
+                match session.get::<String>("user_id") {
+                    Ok(user_id_option) => {
+                        if let Some(username) = user_id_option {
+                            author = Some(username);
+                        }
+                    }
+                    Err(_) => {
+                        // Handle case where getting user from session failed
+                    }
+                }
+            }
+            "date" => {
+                date = Some(chrono::Local::now().format("%d-%m-%Y").to_string());
+            }
+            _ => (),
+        }
+    }
+
+    let id = id.unwrap();
+    let title = title.unwrap();
+    let content = content.unwrap();
+    let date = date.unwrap();
+    let author = author.unwrap();
+
+    let image_path = image_path.unwrap_or_else(|| {
+        if image.is_none() {
+            db::get_article(id).unwrap().image
+        } else {
+            String::new()
+        }
+    });
+
+    let db_image_path = image_path.replace("../public", "");
+
+    if let Some(image) = image {
+        let mut file = fs::File::create(&image_path).unwrap();
+        file.write_all(&image).unwrap();
+    }
+
+    let form = EditArticleForm {
+        id,
+        image_path: db_image_path,
+        title,
+        content,
+        date,
+        author,
+    };
+
+    match db::edit_article(
+        id,
+        &form.image_path,
+        &form.title,
+        &form.content,
+        &form.date,
+        &form.author,
+    ) {
+        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Err(_) => Ok(HttpResponse::InternalServerError().finish()),
+    }
+}
+
+pub async fn delete_article_handler(req: HttpRequest) -> Result<HttpResponse> {
+    let id: i32 = req
+        .match_info()
+        .get("id")
+        .unwrap_or("0")
+        .parse()
+        .unwrap_or(0);
+
+    db::delete_article(id)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(""))
+}
+
+pub async fn admin_user_handler(_req: HttpRequest) -> Result<HttpResponse> {
+    let path: PathBuf = "../public/pages/users.html".parse().unwrap();
+    let content = tokio::fs::read_to_string(path).await?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(content))
 }
 
 pub async fn add_user_handler(form: web::Form<User>) -> Result<HttpResponse, actix_web::Error> {

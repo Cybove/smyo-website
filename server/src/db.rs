@@ -1,4 +1,5 @@
-use crate::src::main_content::Announcement;
+use crate::src::announcements::Announcement;
+use crate::src::articles::Article;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use rusqlite::{Connection, Result, ToSql};
 
@@ -10,7 +11,7 @@ pub fn establish_connection() -> Result<Connection> {
 //     let conn = establish_connection()?;
 
 //     conn.execute(
-//         "CREATE TABLE IF NOT EXISTS announcements (
+//         "CREATE TABLE IF NOT EXISTS articles (
 //             id INTEGER PRIMARY KEY,
 //             image TEXT NOT NULL,
 //             title TEXT NOT NULL,
@@ -123,6 +124,102 @@ pub fn delete_announcement(id: i32) -> Result<()> {
         "DELETE FROM announcements WHERE id = ?1",
         &[&id.to_string()],
     )?;
+
+    Ok(())
+}
+
+pub fn get_articles(page: i32, page_size: i32) -> Result<(Vec<Article>, i32), rusqlite::Error> {
+    let conn = establish_connection()?;
+
+    let offset = (page - 1) * page_size;
+
+    let mut stmt = conn.prepare("SELECT * FROM articles ORDER BY id DESC LIMIT ?1 OFFSET ?2")?;
+    let article_iter =
+        stmt.query_map(&[&page_size as &dyn ToSql, &offset as &dyn ToSql], |row| {
+            let article = Article {
+                id: row.get(0)?,
+                image: row.get(1)?,
+                title: row.get(2)?,
+                content: row.get(3)?,
+                date: row.get(4)?,
+                author: row.get(5)?,
+            };
+            Ok(article)
+        })?;
+
+    let mut articles = Vec::new();
+    for article in article_iter {
+        articles.push(article?);
+    }
+
+    let total_articles: i32 =
+        conn.query_row("SELECT COUNT(*) FROM articles", [], |row| row.get(0))?;
+
+    Ok((articles, total_articles))
+}
+
+pub fn get_article(id: i32) -> Result<Article> {
+    let conn = establish_connection()?;
+
+    let mut stmt = conn.prepare("SELECT * FROM articles WHERE id = ?1")?;
+    let article_iter = stmt.query_map(&[&id.to_string() as &dyn ToSql], |row| {
+        let article = Article {
+            id: row.get(0)?,
+            image: row.get(1)?,
+            title: row.get(2)?,
+            content: row.get(3)?,
+            date: row.get(4)?,
+            author: row.get(5)?,
+        };
+        Ok(article)
+    })?;
+
+    let mut articles = Vec::new();
+    for article in article_iter {
+        articles.push(article?);
+    }
+    Ok(articles[0].clone())
+}
+
+pub fn add_article(
+    image: &str,
+    title: &str,
+    content: &str,
+    date: &str,
+    author: &str,
+) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute(
+        "INSERT INTO articles (image, title, content, date, author) VALUES (?1, ?2, ?3, ?4, ?5)",
+        &[image, title, content, date, author],
+    )?;
+
+    Ok(())
+}
+
+pub fn edit_article(
+    id: i32,
+    image: &str,
+    title: &str,
+    content: &str,
+    date: &str,
+    author: &str,
+) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute(
+        "UPDATE articles SET image = ?1, title = ?2, content = ?3, date = ?4, author = ?5 WHERE id = ?6",
+        &[image, title, content, date, author, &id.to_string()],
+    )?;
+
+    Ok(())
+}
+
+pub fn delete_article(id: i32) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute("DELETE FROM articles WHERE id = ?1", &[&id.to_string()])?;
 
     Ok(())
 }
