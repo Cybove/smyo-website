@@ -1698,10 +1698,6 @@ input:checked + .toggle-bg {
   border-width: 0px;
 }
 
-.border-2 {
-  border-width: 2px;
-}
-
 .border-b {
   border-bottom-width: 1px;
 }
@@ -2015,10 +2011,6 @@ input:checked + .toggle-bg {
 
 .leading-6 {
   line-height: 1.5rem;
-}
-
-.leading-8 {
-  line-height: 2rem;
 }
 
 .leading-9 {
@@ -2510,10 +2502,6 @@ input:checked + .toggle-bg {
 @media (min-width: 768px) {
   .md\:me-6 {
     margin-inline-end: 1.5rem;
-  }
-
-  .md\:mr-0 {
-    margin-right: 0px;
   }
 
   .md\:mt-0 {
