@@ -42,7 +42,7 @@ db.serialize(() => {
           )`);
 
   db.run(
-    `INSERT INTO users (username, password, name) VALUES ('root', 'root', 'root')`
+    `INSERT INTO users (username, password, name) VALUES ('root', '$2a$12$emHZ1nzkcNjDE/fKV5Ali.xX8TyU8gMRRKH4j35QIrVz5Eozd1.Fa', 'root')`
   );
 });
 

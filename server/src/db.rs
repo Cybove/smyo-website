@@ -1,29 +1,11 @@
 use crate::src::announcements::Announcement;
 use crate::src::articles::Article;
-use bcrypt::{hash, verify, DEFAULT_COST};
+use bcrypt::{hash, verify, DEFAULT_COST}; //12
 use rusqlite::{Connection, Result, ToSql};
 
 pub fn establish_connection() -> Result<Connection> {
     Connection::open("./db/database.db")
 }
-
-// pub fn create_table() -> Result<()> {
-//     let conn = establish_connection()?;
-
-//     conn.execute(
-//         "CREATE TABLE IF NOT EXISTS articles (
-//             id INTEGER PRIMARY KEY,
-//             image TEXT NOT NULL,
-//             title TEXT NOT NULL,
-//             content TEXT NOT NULL,
-//             date TEXT NOT NULL,
-//             author TEXT NOT NULL
-//         )",
-//         [],
-//     )?;
-
-//     Ok(())
-// }
 
 pub fn get_announcements(
     page: i32,

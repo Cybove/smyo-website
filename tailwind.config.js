@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       backgroundImage: {
-        'pattern': "url('../assets/image/test3.svg')",
+        'pattern': "url('../assets/image/bg.svg')",
       },
       backgroundSize: {
         'cover': 'cover',
