@@ -11,6 +11,34 @@
     </div>
 </div>
 
+<div class="container mt-4 mx-auto md:px-6 overflow-auto">
+    <section class="mb-12 text-center">
+        <h2 class="mb-6 mt-12 pb-4 text-center text-3xl font-bold">
+            Duyurular
+        </h2>
+        <div id="announcement-container" hx-get="/announcements/1?main_page=true" hx-swap="innerHTML" hx-trigger="load"
+            hx-indicator="#loading-indicator" hx-boost="true">
+        </div>
+        <div id="loading-indicator" class="my-4 text-center hidden">
+            Loading...
+        </div>
+    </section>
+</div>
+
+<div class="container mt-4 mx-auto md:px-6 overflow-auto">
+    <section class="mb-32 text-center">
+        <h2 class="mb-6 mt-12 pb-4 text-center text-3xl font-bold">
+            Makaleler & Haberler
+        </h2>
+        <div id="articles-container" hx-get="/articles/1?main_page=true" hx-swap="innerHTML"
+            hx-trigger="load" hx-indicator="#loading-indicator" hx-boost="true">
+        </div>
+        <div id="loading-indicator" class="my-4 text-center hidden">
+            Loading...
+        </div>
+    </section>
+</div>
+
 <style>
     @media screen and (max-width: 768px) {
 
@@ -21,12 +49,18 @@
     }
 </style>
 
+<script src="../../node_modules/swiper/swiper-bundle.min.js"></script>
+
 <script>
+    var mySwiper = null;
+    var effect = ['fade', 'cube', 'coverflow', 'flip', 'cards'];
+    var randomEffect = effect[Math.floor(Math.random() * effect.length)];
     document.body.addEventListener('htmx:afterSwap', function (event) {
-        var effect = ['fade', 'cube', 'coverflow', 'flip', 'cards'];
-        var randomEffect = effect[Math.floor(Math.random() * effect.length)];
         if (event.target.classList.contains('swiper-wrapper')) {
-            var mySwiper = new Swiper('.mySwiper', {
+            if (mySwiper) {
+                mySwiper.destroy(true, true);
+            }
+            mySwiper = new Swiper('.mySwiper', {
                 slidesPerView: 1,
                 spaceBetween: 30,
                 autoplay: {

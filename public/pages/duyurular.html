@@ -3,7 +3,7 @@
         <h2 class="mb-6 mt-12 pb-4 text-center text-3xl font-bold">
             Duyurular
         </h2>
-        <div id="announcement-container" hx-get="/announcements/1" hx-swap="innerHTML" hx-trigger="load"
+        <div id="announcement-container" hx-get="/announcements/1?main_page=false" hx-swap="innerHTML" hx-trigger="load"
             hx-indicator="#loading-indicator" hx-boost="true">
         </div>
         <div id="loading-indicator" class="my-4 text-center hidden">

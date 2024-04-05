@@ -834,16 +834,6 @@ pub async fn add_user_form_handler() -> Result<HttpResponse, actix_web::Error> {
     Ok(HttpResponse::Ok().content_type("text/html").body(form))
 }
 
-// pub async fn edit_user_form_handler(_req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
-//     let path: PathBuf = "../public/pages/edit_user.html".parse().unwrap();
-//     let form = tokio::fs::read_to_string(path).await?;
-//     Ok(HttpResponse::Ok().content_type("text/html").body(form))
-// }
-
-// pub async fn edit_user_handler(_req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
-//     // get
-// }
-
 pub async fn edit_user_form_handler(req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
     let username: String = req.match_info().query("username").parse().unwrap();
     let user = db::get_user(&username).unwrap();
@@ -1075,9 +1065,9 @@ pub async fn admin_upload_handler(
 
         let image_data = bytes.freeze();
         let img = image::load_from_memory(&image_data).unwrap();
-        let resized = img.resize_exact(1344, 520, image::imageops::FilterType::Nearest);
-        let image_path = format!("../public/assets/slider/{}.jpg", Uuid::new_v4().to_string());
-        resized.save(&image_path).unwrap();
+        let resized = img.resize_exact(1280, 720, image::imageops::FilterType::Lanczos3);
+        let image_path = format!("../public/assets/slider/{}.webp", Uuid::new_v4().to_string());
+        resized.save_with_format(&image_path, image::ImageFormat::WebP).unwrap();
     }
 
     let image_files = get_image_files().await?;

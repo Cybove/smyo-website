@@ -1,9 +1,9 @@
 <div class="container mt-4 mx-auto md:px-6">
     <section class="mb-32 text-center">
         <h2 class="mb-6 mt-12 pb-4 text-center text-3xl font-bold">
-            Makaleler
+            Makaleler & Haberler
         </h2>
-        <div id="articles-container" hx-get="/articles/1" hx-swap="innerHTML"
+        <div id="articles-container" hx-get="/articles/1?main_page=false" hx-swap="innerHTML"
             hx-trigger="load" hx-indicator="#loading-indicator" hx-boost="true">
         </div>
         <div id="loading-indicator" class="my-4 text-center hidden">
