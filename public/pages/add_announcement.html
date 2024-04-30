@@ -138,7 +138,8 @@
         var htmlContent = editor.value;
         document.getElementById('contentHtml').value = htmlContent;
 
-        var image = document.querySelector("input[name='image']").files[0];
+        var imageInput = document.querySelector("input[name='image']");
+        var image = imageInput.files[0];
         var title = document.querySelector("input[name='title']").value;
         var date = "";
         var author = "";

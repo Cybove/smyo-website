@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
                     .build(),
             )
             .route("/", web::get().to(src::index::handler))
-            .route("/admin", web::get().to(src::admin::handler))
+            .route("/dashboard", web::get().to(src::admin::handler))
             .route("/login", web::post().to(src::admin::login_handler))
             .route("/logout", web::get().to(src::admin::logout_handler))
             .route(
@@ -74,6 +74,10 @@ async fn main() -> Result<()> {
             .route(
                 "/admin/messages",
                 web::get().to(src::admin::get_messages_handler),
+            )
+            .route(
+                "/admin/messages/delete/{id}",
+                web::delete().to(src::admin::delete_message_handler),
             )
             .route("/contact", web::get().to(src::contact::handler))
             .route("/contact", web::post().to(src::contact::post_handler))

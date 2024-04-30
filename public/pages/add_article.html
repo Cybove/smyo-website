@@ -1,7 +1,6 @@
 <div class='flex justify-center'>
-    <form id='article-form' class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
-        hx-encoding="multipart/form-data" hx-post='/admin/articles/add' hx-swap='innerHTML'
-        onsubmit='submitForm(event)'>
+    <form id='article-form' class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" hx-encoding="multipart/form-data"
+        hx-post='/admin/articles/add' hx-swap='innerHTML' onsubmit='submitForm(event)'>
         <div class="mb-4">
             <input
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -138,7 +137,8 @@
         var htmlContent = editor.value;
         document.getElementById('contentHtml').value = htmlContent;
 
-        var image = document.querySelector("input[name='image']").files[0];
+        var imageInput = document.querySelector("input[name='image']");
+        var image = imageInput.files[0];
         var title = document.querySelector("input[name='title']").value;
         var date = "";
         var author = "";

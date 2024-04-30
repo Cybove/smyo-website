@@ -2,4 +2,3 @@ node_modules/
 target/
 server/target/
 public/css/styles.css
-server/db/database.db

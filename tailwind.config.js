@@ -25,6 +25,18 @@ module.exports = {
         'xl': '16px',
         '2xl': '24px',
         '3xl': '48px',
+      },
+      rotate: {
+        '360': '360deg',
+      },
+      keyframes: {
+        flip: {
+          '0%': { transform: 'rotateY(0deg)' },
+          '100%': { transform: 'rotateY(360deg)' },
+        }
+      },
+      animation: {
+        flip: 'flip 1.5s linear ',
       }
     },
     screens: {

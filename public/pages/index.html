@@ -7,19 +7,19 @@
     <title>CÜ Sivas TBMYO Bilgisayar Teknolojileri Bölümü</title>
     <link rel="icon" href="../assets/image/favicon.ico">
     <link rel="stylesheet" href="../../node_modules/flowbite/dist/flowbite.min.css">
-    <!-- <link href="https://cdn.jsdelivr.net/npm/swiper@11.0.5/swiper-bundle.min.css" rel="stylesheet"> -->
     <link href="../../node_modules/swiper/swiper-bundle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../../node_modules/jodit/es5/jodit.min.css" />
+    <script src="../../node_modules/flowbite/dist/flowbite.min.js"></script>
 </head>
 
 <body class="flex flex-col min-h-screen bg-pattern bg-cover bg-center">
 
     <nav class="bg-white border-gray-500 shadow-2xl shadow-gray-500 border-spacing-6 rounded-lg m-4 p-2">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-0">
-            <a href="/" hx-get="/main" hx-target="#main-container" hx-push-url="#" hx-trigger="click"
+            <a href="#anasayfa" hx-get="/main" hx-target="#main-container" hx-trigger="click"
                 class="flex items-center space-x-3 rtl:space-x-reverse">
-                <img src="../assets/image/logo.png" class="h-20" alt="SMYO Logo" />
+                <img src="../assets/image/logonix.png" width="200" class="h-20 transform hover:animate-flip" alt="SMYO Logo" />
                 <span class="self-center text-2xl font-semibold whitespace-nowrap"></span>
             </a>
             <button data-collapse-toggle="navbar-dropdown" type="button"
@@ -37,63 +37,46 @@
                     class="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
 
                     <li>
-                        <!-- Anasayfa link -->
-                        <a id="link-main" href="#" hx-get="/main" hx-target="#main-container" hx-push-url="#"
+                        <a id="link-main" href="#anasayfa" hx-get="/main" hx-target="#main-container" hx-trigger="click"
+                            class="font-semibold block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Ana
+                            Sayfa</a>
+                    </li>
+
+                    <li>
+                        <a id="link-duyurular" href="#duyurular" hx-get="/duyurular" hx-target="#main-container"
                             hx-trigger="click"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Anasayfa</a>
+                            class="font-semibold block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Duyurular</a>
+                    </li>
+                    <li>
+                        <a id="link-makaleler" href="#makaleler" hx-get="/makaleler" hx-target="#main-container"
+                            hx-trigger="click"
+                            class="font-semibold block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Makaleler</a>
                     </li>
 
                     <li>
-                        <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar"
-                            class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">İçerik
-                            <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 10 6">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m1 1 4 4 4-4" />
-                            </svg></button>
-                        <!-- Dropdown menu -->
-                        <div id="dropdownNavbar"
-                            class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
-                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-400"
-                                aria-labelledby="dropdownLargeButton">
-                                <li>
-                                    <a id="link-duyurular" href="#duyurular" hx-get="/duyurular"
-                                        hx-target="#main-container" hx-push-url="#duyurular" hx-trigger="click"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Duyurular</a>
-                                </li>
-                                <li>
-                                    <a id="link-makaleler" href="#makaleler" hx-get="/makaleler"
-                                        hx-target="#main-container" hx-push-url="#makaleler" hx-trigger="click"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Makaleler</a>
-                                </li>
-                                <li>
-                                    <a id="link-dokumanlar" href="#dokumanlar" hx-get="/dokumanlar"
-                                        hx-target="#main-container" hx-push-url="#dokumanlar" hx-trigger="click"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dokümanlar</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li>
-                        <!-- İletişim link -->
                         <a id="link-contact" href="#contact" hx-get="/contact" hx-target="#main-container"
-                            hx-push-url="#contact" hx-trigger="click"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">İletişim</a>
+                            hx-trigger="click"
+                            class="font-semibold block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">İletişim</a>
                     </li>
 
                     <li>
-                        <!-- Personel -->
                         <a id="link-personel" href="#personel" hx-get="/personel" hx-target="#main-container"
-                            hx-push-url="#personel" hx-trigger="click"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Personel</a>
+                            hx-trigger="click"
+                            class="font-semibold block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Personel</a>
                     </li>
 
+                    <li>
+                        <a href="#anasayfa"
+                            class="font-semibold block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                            onclick="window.scrollTo(0, document.body.scrollHeight);">Doküman</a>
+                    </li>
 
                 </ul>
             </div>
         </div>
+
     </nav>
+
     <div id="main-container" class="flex-grow">
 
 
@@ -101,7 +84,7 @@
 
     <footer class="bg-white rounded-lg shadow m-4 dark:bg-gray-800">
         <div class="w-full mx-auto max-w-screen-xl w- p-4 md:flex md:items-center md:justify-between">
-            <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2023 <span
+            <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2024 <span
                     class="hover:underline">STBMYO | Cumhuriyet Üniversitesi Sivas TBMYO Bilgisayar Teknolojileri
                     Bölümü</span>.
             </span>
@@ -125,12 +108,11 @@
     <script src="../../node_modules/htmx.org/dist/htmx.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script> -->
     <script src="../../node_modules/swiper/swiper-bundle.min.js"></script>
-    <script src="../../node_modules/flowbite/dist/flowbite.min.js"></script>
 
     <script>
+
         function changeLinkColor() {
             var hash = window.location.hash.substr(1);
-            hash = hash == "" ? "main" : hash;
             var link = document.getElementById(`link-${hash}`);
             var allLinks = document.querySelectorAll("a[hx-get]");
 
@@ -155,11 +137,25 @@
             document.title = `${hash} | CÜ Sivas TBMYO Bilgisayar Teknolojileri Bölümü`;
         }
 
+        function reloadPage() {
+            var hash = window.location.hash.substr(1);
+            hash = hash == "" || hash == "anasayfa" ? "main" : hash;
+            var link;
+            if (hash == "main") {
+                link = document.querySelector(`a[hx-get="/main"]`);
+            } else {
+                link = document.querySelector(`a[hx-get="/${hash}"]`);
+            }
+            if (link) {
+                link.click();
+            }
+        }
+
         window.onload = function () {
             changeLinkColor();
             updateTitle();
             var hash = window.location.hash.substr(1);
-            hash == "" ? hash = "main" : hash = hash;
+            hash = hash == "" || hash == "anasayfa" ? "main" : hash;
             if (hash) {
                 var link = document.querySelector(`a[hx-get="/${hash}"]`);
                 if (link) {
@@ -173,6 +169,24 @@
             updateTitle();
         });
 
+        window.onpopstate = function (event) {
+            var hash = window.location.hash.substr(1);
+            if (hash && hash != "main") {
+                reloadPage();
+            }
+        };
+
+
+        /* SUPER SECRET EASTER EGG */
+        if (new Date().getMonth() === 11 || new Date().getMonth() === 0) {
+            document.head.appendChild((function () {
+                var s = document.createElement('script');
+                s.type = 'text/javascript';
+                s.async = true;
+                s.src = 'https://cdn.jsdelivr.net/npm/christmas-snow-3d/build/snow3d.js';
+                return s;
+            })());
+        }
     </script>
 
 </body>

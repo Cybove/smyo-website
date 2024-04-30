@@ -217,16 +217,17 @@ pub fn contact_message(name: &str, email: &str, message: &str, ip_address: &str)
     Ok(())
 }
 
-pub fn get_messages() -> Result<Vec<(String, String, String, String)>, rusqlite::Error> {
+pub fn get_messages() -> Result<Vec<(i32, String, String, String, String)>, rusqlite::Error> {
     let conn = establish_connection()?;
 
-    let mut stmt = conn.prepare("SELECT name, email, message, ip_address FROM messages")?;
+    let mut stmt = conn.prepare("SELECT id, name, email, message, ip_address FROM messages")?;
     let message_iter = stmt.query_map([], |row| {
-        let name: String = row.get(0)?;
-        let email: String = row.get(1)?;
-        let message: String = row.get(2)?;
-        let ip_address: String = row.get(3)?;
-        Ok((name, email, message, ip_address))
+        let id: i32 = row.get(0)?;
+        let name: String = row.get(1)?;
+        let email: String = row.get(2)?;
+        let message: String = row.get(3)?;
+        let ip_address: String = row.get(4)?;
+        Ok((id, name, email, message, ip_address))
     })?;
 
     let mut messages = Vec::new();
@@ -235,6 +236,14 @@ pub fn get_messages() -> Result<Vec<(String, String, String, String)>, rusqlite:
     }
 
     Ok(messages)
+}
+
+pub fn delete_message(id: i32) -> Result<()> {
+    let conn = establish_connection()?;
+
+    conn.execute("DELETE FROM messages WHERE id = ?1", &[&id.to_string()])?;
+
+    Ok(())
 }
 
 pub fn authenticate_user(

@@ -4,6 +4,12 @@ use actix_web::{web::Json, web::Query ,HttpRequest, HttpResponse, Responder, Res
 use serde::Serialize;
 use serde_derive::Deserialize;
 
+pub async fn handler(_req: HttpRequest) -> Result<HttpResponse> {
+    let path: PathBuf = "../public/pages/makaleler.html".parse().unwrap();
+    let content = tokio::fs::read_to_string(path).await?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(content))
+}
+
 #[derive(Clone, Serialize)]
 pub struct Article {
     pub id: i32,
@@ -18,12 +24,6 @@ pub struct Article {
 pub struct Pagination {
     page: Option<i32>,
     page_size: Option<i32>,
-}
-
-pub async fn handler(_req: HttpRequest) -> Result<HttpResponse> {
-    let path: PathBuf = "../public/pages/makaleler.html".parse().unwrap();
-    let content = tokio::fs::read_to_string(path).await?;
-    Ok(HttpResponse::Ok().content_type("text/html").body(content))
 }
 
 pub async fn articles_handler(
@@ -43,7 +43,7 @@ pub async fn articles_handler(
                 <div class='relative block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] dark:bg-neutral-700'>
                     <div class='flex justify-center'>
                         <div class='relative mx-4 -mt-4 overflow-hidden rounded-lg bg-cover bg-no-repeat shadow-lg dark:shadow-black/20' data-te-ripple-init data-te-ripple-color='light'>
-                            <img src='{}' class='object-contain h-64 w-full max-w-md mx-auto' />
+                            <img src='{}' class='rounded-xl object-fit h-80 w-[450px] mx-auto xs:max-w-xs' />   
                             <div class='absolute top-0 right-0 bottom-0 left-0 h-full w-full overflow-hidden bg-fixed opacity-0 transition duration-300 ease-in-out hover:opacity-100 bg-[hsla(0,0%,98.4%,.15)]'></div>
                         </div>
                     </div>
@@ -54,7 +54,7 @@ pub async fn articles_handler(
                             <br/>
                             <a>{}</a></small>
                         </p>
-                        <button hx-get='/article/{}' hx-target='#main-container' class='inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
+                        <button hx-get='/article/{}' hx-target='#main-container' hx-push-url='#makale' class='inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
                             Oku
                         </button>
                         </div>
@@ -69,8 +69,8 @@ pub async fn articles_handler(
     if from_main_page {
         response.push_str(&format!(
             "<a id='link-makaleler' href='#makaleler' hx-get='/makaleler'
-            hx-target='#main-container' hx-push-url='#makaleler' hx-trigger='click'
-            class='inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>Tüm Makaleler</a>"
+            hx-target='#main-container' hx-trigger='click'
+            class='inline-flex items-center justify-center px-4 mt-6 py-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>Tüm Makaleler</a>"
         ));
     } 
     
@@ -80,7 +80,7 @@ pub async fn articles_handler(
         if page > 1 {
             let prev_page = page - 1;
             response.push_str(&format!(
-                "<button class='flex items-center justify-center px-3 h-8 ms-3 text-lg font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-300 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' hx-get='/articles/{}' hx-boost='true' hx-target='#articles-container'>                
+                "<button class='flex items-center justify-center px-3 h-8 ms-3 text-lg font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-300 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' hx-get='/articles/{}' hx-boost='true' hx-target='#articles-container'>
                 <svg class='w-5 h-5 me-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
                 <path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 5H1m0 0 4 4M1 5l4-4'/>
                 </svg>
@@ -110,79 +110,6 @@ pub async fn articles_handler(
     Ok(HttpResponse::Ok().content_type("text/html").body(response))
 }
 
-// pub async fn articles_handler(
-//     req: HttpRequest,
-// ) -> Result<HttpResponse> {
-//     let page: i32 = req.match_info().get("page").unwrap_or("1").parse().unwrap_or(1);
-//     let (articles, total_articles) = db::get_articles(page, 3)
-//         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
-//     let mut response = String::new();
-//     response.push_str("<div class='grid gap-6 lg:grid-cols-3 xl:gap-x-12'>");
-//     for article in articles {
-//         response.push_str(&format!(
-//             "<div class='mb-6 lg:mb-0'>
-//                 <div class='relative block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] dark:bg-neutral-700'>
-//                     <div class='flex justify-center'>
-//                         <div class='relative mx-4 -mt-4 overflow-hidden rounded-lg bg-cover bg-no-repeat shadow-lg dark:shadow-black/20' data-te-ripple-init data-te-ripple-color='light'>
-//                             <img src='{}' class='object-contain h-64 w-full max-w-md mx-auto' />
-//                             <div class='absolute top-0 right-0 bottom-0 left-0 h-full w-full overflow-hidden bg-fixed opacity-0 transition duration-300 ease-in-out hover:opacity-100 bg-[hsla(0,0%,98.4%,.15)]'></div>
-//                         </div>
-//                     </div>
-//                     <div class='p-6'>
-//                         <h5 class='mb-3 text-lg font-bold'>{}</h5>
-//                         <p class='mb-4 text-neutral-500 dark:text-neutral-300'>
-//                             <small><u>{}</u>
-//                             <br/>
-//                             <a>{}</a></small>
-//                         </p>
-//                         <button hx-get='/article/{}' hx-target='#main-container' class='inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
-//                             Oku
-//                         </button>
-//                         </div>
-//                 </div>
-//             </div>",
-//             article.image, article.title, article.date, article.author, article.id
-//         ));
-//     }
-
-//     response.push_str("</div>");
-
-// response.push_str("<div class='flex justify-center mt-8'>");
-
-// if page > 1 {
-//     let prev_page = page - 1;
-//     response.push_str(&format!(
-//         "<button class='flex items-center justify-center px-3 h-8 ms-3 text-lg font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-300 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' hx-get='/articles/{}' hx-boost='true' hx-target='#article-container'>
-//         <svg class='w-5 h-5 me-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
-//         <path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 5H1m0 0 4 4M1 5l4-4'/>
-//         </svg>
-//         Önceki Sayfa
-//         </button>",
-//         prev_page
-//     ));
-// }
-
-// if page * 3 < total_articles {
-//     let next_page = page + 1;
-//     response.push_str(&format!(
-//         "<button class='flex items-center justify-center px-3 h-8 ms-3 text-lg font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-300 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' hx-get='/articles/{}' hx-boost='true' hx-target='#article-container'>
-//         Sonraki Sayfa
-//         <svg class='w-5 h-5 ms-2 rtl:rotate-180' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 14 10'>
-//         <path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5h12m0 0L9 1m4 4L9 9'/>
-//         </svg>
-//         </button>",
-//         next_page
-//     ));
-// }
-
-// response.push_str("</div>");
-    
-//     response.push_str("</div>");
-//     Ok(HttpResponse::Ok().content_type("text/html").body(response))
-// }
-
-
 pub async fn article_detail_handler(req: HttpRequest) -> Result<HttpResponse> {
     let id: i32 = req.match_info().get("id").unwrap().parse().unwrap();
     let article = db::get_article(id)
@@ -191,7 +118,7 @@ pub async fn article_detail_handler(req: HttpRequest) -> Result<HttpResponse> {
     let html = format!(
         
         "
-        <a href='#makaleler' hx-get='/makaleler' hx-target='#main-container' hx-push-url='#makaleler' hx-trigger='click'
+        <a href='#makaleler' hx-get='/makaleler' hx-target='#main-container' hx-trigger='click'
         class='py-4 px-5 text-gray-900 rounded max-w-xs md:bg-transparent flex items-center' aria-current='page'>
         <svg class='w-6 h-6 text-gray-800 dark:text-white' aria-hidden='true' xmlns='http://www.w3.org/2000/svg'
             fill='none' viewBox='0 0 8 14'>
@@ -207,11 +134,11 @@ pub async fn article_detail_handler(req: HttpRequest) -> Result<HttpResponse> {
                 </a>
 
                 <div class='relative mb-10'>
-                    <img class='w-64 h-64 mx-auto rounded-lg shadow-lg object-cover object-center max-w-4xl'
+                    <img class='w-auto h-[450px] mx-auto rounded-lg shadow-lg object-fit object-center max-w-4xl'
                         src='{}'>
                 </div>
 
-                <div class='mb-10 w-full md:w-1/2 p-4 mx-auto md:mx-0 justify-center md:justify-start items-center text-center bg-gray-300 border-2 border-gray-300 rounded-lg shadow-lg jodit-wysiwyg overflow-auto'>
+                <div class='mb-10 w-full md:w-1/2 overflow-auto p-4 mx-auto bg-gray-300 border-2 border-gray-300 rounded-lg shadow-lg jodit-wysiwyg'>
                     <div class='text-black pb-8 text-2xl leading-8'>
                         {}
                     </div>
@@ -242,9 +169,7 @@ pub async fn article_detail_handler(req: HttpRequest) -> Result<HttpResponse> {
                         <span class='ml-1'>{}</span></a>
                 </div>
                 <hr>
-
             </div>
-
         </div>",
         
         article.title, article.image, article.content, article.date, article.author

@@ -143,9 +143,9 @@ pub async fn login_handler(form: web::Form<LoginForm>, mut session: Session) -> 
             if user_id_option.is_some() {
                 let path: PathBuf = "../public/pages/dashboard.html".parse().unwrap();
                 let content = tokio::fs::read_to_string(path).await.unwrap();
-                HttpResponse::Ok().content_type("text/html").body(content)
+                HttpResponse::Ok().header("HX-Redirect", "/admin/dashboard").body(content)
             } else {
-                HttpResponse::Unauthorized().body("Login failed")
+                HttpResponse::Unauthorized().content_type("text/html").body("<h1 class='mt-4 font-bold text-2xl text-center text-red-500'>Login Failed</h1>")
             }
         }
         Err(_) => HttpResponse::InternalServerError().body("Failed to get session"),
@@ -165,7 +165,7 @@ pub async fn admin_dashboard_handler(session: Session) -> Result<HttpResponse> {
                 let content = tokio::fs::read_to_string(path).await?;
                 Ok(HttpResponse::Ok().content_type("text/html").body(content))
             } else {
-                Ok(HttpResponse::Found().header("Location", "/admin").finish())
+                Ok(HttpResponse::Found().header("Location", "/").finish())
             }
         }
         Err(_) => Err(actix_web::error::ErrorInternalServerError(
@@ -256,7 +256,7 @@ pub async fn add_announcement_handler(
                     extension
                 ));
                 let mut file = fs::File::create(&image_path.as_ref().unwrap()).unwrap();
-                file.write_all(&image.as_ref().unwrap()).unwrap(); // Use as_ref to avoid moving image
+                file.write_all(&image.as_ref().unwrap()).unwrap();
             }
             "title" => {
                 let mut bytes = BytesMut::new();
@@ -293,7 +293,14 @@ pub async fn add_announcement_handler(
         }
     }
 
-    let image = image.unwrap();
+    if image.is_none() {
+        image_path = Some("../public/assets/image/duyuru_default.png".to_string());
+    }
+
+    let image = image.unwrap_or_else(|| {
+        let default_image_bytes = fs::read("../public/assets/image/duyuru_default.png").unwrap();
+        Bytes::from(default_image_bytes)
+    });
     let title = title.unwrap();
     let content = content.unwrap();
     let date = date.unwrap();
@@ -325,6 +332,7 @@ pub async fn add_announcement_handler(
         Err(_) => Ok(HttpResponse::InternalServerError().finish()),
     }
 }
+
 
 pub async fn add_announcement_form_handler() -> Result<HttpResponse, actix_web::Error> {
     let path: PathBuf = "../public/pages/add_announcement.html".parse().unwrap();
@@ -397,7 +405,7 @@ pub async fn edit_announcement_handler(
                     extension
                 ));
                 let mut file = fs::File::create(&image_path.as_ref().unwrap()).unwrap();
-                file.write_all(&image.as_ref().unwrap()).unwrap(); // Use as_ref to avoid moving image
+                file.write_all(&image.as_ref().unwrap()).unwrap();
             }
             "title" => {
                 let mut bytes = BytesMut::new();
@@ -502,7 +510,7 @@ pub async fn admin_articles_handler(Query(pagination): Query<Pagination>) -> Res
 
     let mut content = String::from("
     <div class='flex justify-center'>
-        <button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded' hx-get='/admin/articles/add/form' hx-swap='innerHTML' hx-target='#dashboard-container'>           Yeni Duyuru Ekle           </button>
+        <button class='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded' hx-get='/admin/articles/add/form' hx-swap='innerHTML' hx-target='#dashboard-container'>           Yeni Makale Ekle           </button>
     </div>
     ");
     for article in &articles {
@@ -571,7 +579,7 @@ pub async fn add_article_handler(
                     extension
                 ));
                 let mut file = fs::File::create(&image_path.as_ref().unwrap()).unwrap();
-                file.write_all(&image.as_ref().unwrap()).unwrap(); // Use as_ref to avoid moving image
+                file.write_all(&image.as_ref().unwrap()).unwrap();
             }
             "title" => {
                 let mut bytes = BytesMut::new();
@@ -608,7 +616,14 @@ pub async fn add_article_handler(
         }
     }
 
-    let image = image.unwrap();
+    if image.is_none() {
+        image_path = Some("../public/assets/image/makale_default.png".to_string());
+    }
+
+    let image = image.unwrap_or_else(|| {
+        let default_image_bytes = fs::read("../public/assets/image/makale_default.png").unwrap();
+        Bytes::from(default_image_bytes)
+    });
     let title = title.unwrap();
     let content = content.unwrap();
     let date = date.unwrap();
@@ -640,6 +655,7 @@ pub async fn add_article_handler(
         Err(_) => Ok(HttpResponse::InternalServerError().finish()),
     }
 }
+
 
 pub async fn add_article_form_handler() -> Result<HttpResponse, actix_web::Error> {
     let path: PathBuf = "../public/pages/add_article.html".parse().unwrap();
@@ -942,12 +958,15 @@ pub async fn get_messages_handler() -> Result<HttpResponse, actix_web::Error> {
         .map(|message| {
             format!(
                 "<tr class=\"bg-white border-b dark:bg-gray-800 dark:border-gray-700\">
-                    <th scope=\"row\" class=\"px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white\">{}</th>
-                    <td class=\"px-6 py-4\">{}</td>
-                    <td class=\"px-6 py-4\">{}</td>
-                    <td class=\"px-6 py-4\">{}</td>
+                <th scope=\"row\" class=\"px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white\">{}</th>
+                <td class=\"px-6 py-4\">{}</td>
+                <td class=\"px-6 py-4\">{}</td>
+                <td class=\"px-6 py-4\">{}</td>
+                <td class=\"px-6 py-4\">
+                    <button hx-delete='/admin/messages/delete/{}' hx-confirm='Are you sure you want to delete this message?' hx-swap='outerHTML' hx-target='closest tr' class='text-red-500'>Delete</button>
+                </td>
                 </tr>",
-                message.0, message.1, message.2, message.3
+                message.1, message.2, message.3, message.4, message.0
             )
         })
         .collect::<Vec<String>>()
@@ -957,13 +976,14 @@ pub async fn get_messages_handler() -> Result<HttpResponse, actix_web::Error> {
         "
         <div class=\"w-1/2 mx-auto mt-10 justify-center items-center text-center\">
             <div class=\"relative overflow-x-auto\">
-                <table class=\"w-full text-sm text-center rtl:text-right text-gray-500 dark:text-gray-400\">
+                <table id=\"message-table\" class=\"w-full text-sm text-center rtl:text-right text-gray-500 dark:text-gray-400\">
                     <thead class=\"text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400\">
                         <tr>
                             <th scope=\"col\" class=\"px-6 py-3\">İsim</th>
                             <th scope=\"col\" class=\"px-6 py-3\">Email</th>
                             <th scope=\"col\" class=\"px-6 py-3\">Mesaj</th>
                             <th scope=\"col\" class=\"px-6 py-3\">Ip</th>
+                            <th scope=\"col\" class=\"px-6 py-3\">İşlem</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -977,6 +997,21 @@ pub async fn get_messages_handler() -> Result<HttpResponse, actix_web::Error> {
 
     Ok(HttpResponse::Ok().content_type("text/html").body(table))
 }
+
+pub async fn delete_message_handler(req: HttpRequest) -> Result<HttpResponse, actix_web::Error> {
+    let id: i32 = req
+        .match_info()
+        .get("id")
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("Missing id parameter"))?
+        .parse()
+        .map_err(|_| actix_web::error::ErrorBadRequest("Invalid id parameter"))?;
+
+    db::delete_message(id)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    Ok(HttpResponse::Ok().finish())
+}
+
 
 pub async fn admin_gallery_handler() -> Result<HttpResponse, actix_web::Error> {
     let path: PathBuf = "../public/pages/gallery.html".parse().unwrap();
